@@ -1,11 +1,12 @@
 
-  # Job Detail Page Prototype
+# JobHub
 
-  This is a code bundle for Job Detail Page Prototype. The original project is available at https://www.figma.com/design/y0Ke3Z3av6HGg4ddaKyJr7/Job-Detail-Page-Prototype.
+A comprehensive job board application featuring job listings, detailed job pages, and location-based careers pages. Built with React, TypeScript, Vite, and Supabase.
 
-  ## Running the code
+The original design prototype is available at https://www.figma.com/design/y0Ke3Z3av6HGg4ddaKyJr7/Job-Detail-Page-Prototype.
 
-  Run `npm i` to install the dependencies.
+## Running the code
 
-  Run `npm run dev` to start the development server.
-  
+Run `npm i` to install the dependencies.
+
+Run `npm run dev` to start the development server.
