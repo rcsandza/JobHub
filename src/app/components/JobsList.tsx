@@ -31,14 +31,13 @@ export function JobsList() {
   const [totalCount, setTotalCount] = useState(0);
   
   // Search filters
-  const [referenceSearch, setReferenceSearch] = useState('');
   const [companySearch, setCompanySearch] = useState('');
   const [titleSearch, setTitleSearch] = useState('');
   const [zipcodeSearch, setZipcodeSearch] = useState('');
 
   useEffect(() => {
     fetchJobs();
-  }, [currentPage, referenceSearch, companySearch, titleSearch, zipcodeSearch]);
+  }, [currentPage, companySearch, titleSearch, zipcodeSearch]);
 
   async function fetchJobs() {
     try {
@@ -53,9 +52,6 @@ export function JobsList() {
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
       // Apply filters
-      if (referenceSearch) {
-        query = query.ilike('referencenumber', `%${referenceSearch}%`);
-      }
       if (companySearch) {
         query = query.ilike('company', `%${companySearch}%`);
       }
@@ -90,7 +86,6 @@ export function JobsList() {
   };
 
   const handleClearFilters = () => {
-    setReferenceSearch('');
     setCompanySearch('');
     setTitleSearch('');
     setZipcodeSearch('');
@@ -133,20 +128,7 @@ export function JobsList() {
             <h3 className="text-foreground">Search Filters</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label htmlFor="reference" className="text-foreground">
-                Reference Number
-              </label>
-              <Input
-                id="reference"
-                placeholder="Search by reference..."
-                value={referenceSearch}
-                onChange={(e) => setReferenceSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              />
-            </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label htmlFor="company" className="text-foreground">
                 Company
