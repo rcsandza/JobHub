@@ -48,6 +48,7 @@ export function JobsList() {
       let query = supabase
         .from('jobs')
         .select('id, slug, title, company, postal_code, referencenumber, employment_type, created_at, updated_at, is_active, posted_at', { count: 'exact' })
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
 
@@ -222,9 +223,6 @@ export function JobsList() {
                             <Badge variant="default" className="bg-primary">
                               New
                             </Badge>
-                          )}
-                          {job.is_active === false && (
-                            <Badge variant="destructive">Inactive</Badge>
                           )}
                         </div>
                         
