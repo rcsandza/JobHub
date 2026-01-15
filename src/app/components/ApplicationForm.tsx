@@ -1,7 +1,6 @@
-import { useState, FormEvent, ChangeEvent, useEffect, useRef } from 'react';
+import { useState, FormEvent, ChangeEvent } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Upload, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface ApplicationFormProps {
   jobReferenceNumber: string | null;
@@ -18,42 +17,6 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit }: ApplicationFor
   });
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isFixed, setIsFixed] = useState(true);
-  const formRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      
-      const rect = containerRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      
-      // If the container's natural position would be visible in viewport, make it static
-      // Otherwise keep it fixed at bottom
-      if (rect.top <= viewportHeight - 80) {
-        setIsFixed(false);
-      } else {
-        setIsFixed(true);
-        // Collapse when fixed (floating over content)
-        setIsExpanded(false);
-      }
-      
-      // Auto-expand when scrolled to bottom
-      const scrolledToBottom = 
-        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
-      
-      if (scrolledToBottom) {
-        setIsExpanded(true);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Check initial state
-    
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -152,162 +115,123 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit }: ApplicationFor
     }
   };
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   return (
-    <div ref={containerRef} className="mt-8">
-      <div
-        ref={formRef}
-        className={`transition-all duration-300 ${isFixed ? 'fixed bottom-0 left-0 right-0 z-40' : 'relative'}`}
-        style={{
-          transform: isExpanded ? 'translateY(0)' : 'translateY(calc(100% - 80px))',
-        }}
-      >
-        <div className="container mx-auto max-w-4xl px-4">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-card border border-border rounded-t-[var(--radius-card)]"
-            style={{ boxShadow: isFixed ? 'var(--elevation-lg)' : 'none' }}
-          >
-            {/* Header - Always Visible */}
-            <div
-              className="flex items-center justify-between p-6 cursor-pointer border-b border-border"
-              onClick={toggleExpanded}
-            >
-              <div className="space-y-1">
-                <h2 className="text-foreground">Apply for this Position</h2>
-                <p className="text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                  {isExpanded ? 'Fill out the form below to submit your application' : 'Click to expand and apply'}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={isExpanded ? 'Collapse form' : 'Expand form'}
-              >
-                {isExpanded ? (
-                  <ChevronDown className="h-6 w-6" />
-                ) : (
-                  <ChevronUp className="h-6 w-6" />
-                )}
-              </button>
-            </div>
-
-            {/* Form Content - Collapsible */}
-            <div className="p-6 space-y-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="firstName" className="text-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                    First Name <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    placeholder="John"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="lastName" className="text-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                    Last Name <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    placeholder="Doe"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="emailAddress" className="text-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                  Email Address <span className="text-destructive">*</span>
-                </label>
-                <Input
-                  id="emailAddress"
-                  name="emailAddress"
-                  type="email"
-                  required
-                  value={formData.emailAddress}
-                  onChange={handleInputChange}
-                  placeholder="john.doe@gmail.com"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="phone" className="text-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                    Phone <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    placeholder="555-555-5555"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="zipcode" className="text-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                    Zip Code <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    id="zipcode"
-                    name="zipcode"
-                    type="text"
-                    required
-                    value={formData.zipcode}
-                    onChange={handleInputChange}
-                    placeholder="10110"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="resume" className="text-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                  Resume
-                </label>
-                <div className="flex items-center gap-3">
-                  <Input
-                    id="resume"
-                    name="resume"
-                    type="file"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx"
-                    className="flex-1"
-                  />
-                  {resumeFile && (
-                    <div className="flex items-center gap-2 text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
-                      <Upload className="h-4 w-4" />
-                      <span className="truncate max-w-xs">{resumeFile.name}</span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-muted-foreground" style={{ fontSize: 'var(--text-xs)' }}>
-                  Accepted formats: PDF, DOC, DOCX
-                </p>
-              </div>
-
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
-                {isSubmitting ? 'Processing...' : 'Submit Application'}
-              </Button>
-            </div>
-          </form>
-        </div>
+    <div className="bg-card rounded-lg p-6 mb-6 space-y-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-foreground text-2xl md:text-3xl font-bold">
+          Apply to this job
+        </h1>
+        <p className="text-muted-foreground text-base">
+          Fill out the fields below to apply
+        </p>
       </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* First Name */}
+        <div className="space-y-2">
+          <label htmlFor="firstName" className="text-foreground text-base">
+            First name <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="firstName"
+            name="firstName"
+            type="text"
+            required
+            value={formData.firstName}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Last Name */}
+        <div className="space-y-2">
+          <label htmlFor="lastName" className="text-foreground text-base">
+            Last name <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="lastName"
+            name="lastName"
+            type="text"
+            required
+            value={formData.lastName}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Email */}
+        <div className="space-y-2">
+          <label htmlFor="emailAddress" className="text-foreground text-base">
+            Email <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="emailAddress"
+            name="emailAddress"
+            type="email"
+            required
+            value={formData.emailAddress}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Phone and Zip Code - Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label htmlFor="phone" className="text-foreground text-base">
+              Phone number <span className="text-destructive">*</span>
+            </label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              value={formData.phone}
+              onChange={handleInputChange}
+              placeholder="(---) --- ----"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="zipcode" className="text-foreground text-base">
+              Zip code <span className="text-destructive">*</span>
+            </label>
+            <Input
+              id="zipcode"
+              name="zipcode"
+              type="text"
+              required
+              value={formData.zipcode}
+              onChange={handleInputChange}
+            />
+          </div>
+        </div>
+
+        {/* Resume Upload */}
+        <div className="space-y-2">
+          <label htmlFor="resume" className="text-primary font-medium text-base">
+            Upload resume
+          </label>
+          <Input
+            id="resume"
+            name="resume"
+            type="file"
+            onChange={handleFileChange}
+            accept=".pdf,.doc,.docx"
+          />
+          <p className="text-muted-foreground text-sm">
+            Optional (.doc, .docx, .pdf)
+          </p>
+        </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6 text-base font-semibold rounded-lg"
+        >
+          {isSubmitting ? 'Processing...' : 'Submit application'}
+        </Button>
+      </form>
     </div>
   );
 }
