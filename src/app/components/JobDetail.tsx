@@ -5,11 +5,11 @@ import { formatDistance } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { JobDetailSkeleton } from './JobDetailSkeleton';
 import { Badge } from './ui/badge';
-import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { ApplicationForm } from './ApplicationForm';
 import { PayloadModal } from './PayloadModal';
-import { ExternalLink } from 'lucide-react';
+import { MobileJobHeader } from './MobileJobHeader';
+import { Banknote, MapPin } from 'lucide-react';
 
 interface Job {
   id: string;
@@ -41,9 +41,8 @@ interface Job {
 
 export function JobDetail() {
   const params = useParams();
-  // Capture the entire path after /job/ as the slug (may include slashes)
   const slug = params['*'] || '';
-  
+
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,12 +114,6 @@ export function JobDetail() {
     ? formatDistance(new Date(job.posted_at), new Date(), { addSuffix: true })
     : null;
 
-  // Check if recently updated
-  const isRecentlyUpdated =
-    job.updated_at &&
-    job.posted_at &&
-    new Date(job.updated_at) > new Date(job.posted_at);
-
   // Check if new (within last 7 days)
   const isNew =
     job.posted_at &&
@@ -130,14 +123,45 @@ export function JobDetail() {
   // Format wage range
   const formatWage = () => {
     if (job.target_wage_rate && job.target_wage_rate_max) {
-      return `$${job.target_wage_rate} - $${job.target_wage_rate_max}/hr`;
+      return `$${job.target_wage_rate}–$${job.target_wage_rate_max} per hour`;
     } else if (job.target_wage_rate) {
-      return `$${job.target_wage_rate}+/hr`;
+      return `$${job.target_wage_rate}+ per hour`;
     }
     return null;
   };
 
   const wageRange = formatWage();
+
+  // Format full address
+  const formatAddress = () => {
+    // Try to build address from extra field
+    if (job.extra?.address) {
+      return job.extra.address;
+    }
+
+    // Build address from available fields
+    const parts = [];
+    if (job.extra?.street_address) {
+      parts.push(job.extra.street_address);
+    }
+    if (job.extra?.city || job.postal_code) {
+      const cityLine = [
+        job.extra?.city,
+        job.extra?.state,
+        job.postal_code
+      ].filter(Boolean).join(', ');
+      if (cityLine) parts.push(cityLine);
+    }
+    if (parts.length === 0 && job.postal_code) {
+      parts.push(job.postal_code);
+    }
+    parts.push('USA');
+
+    return parts.filter(Boolean).join('\n') || 'Location not specified';
+  };
+
+  const address = formatAddress();
+  const addressLines = address.split('\n');
 
   // Sanitize HTML description
   const sanitizedDescription = job.description_html
@@ -145,47 +169,70 @@ export function JobDetail() {
     : null;
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
-      <div className="space-y-8 pb-6">
-        {/* Header */}
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <p className="text-muted-foreground uppercase tracking-wide" style={{ fontSize: 'var(--text-sm)' }}>
+    <div className="min-h-screen bg-background">
+      {/* Mobile Job Header */}
+      <MobileJobHeader title={job.title} />
+
+      {/* Main Content */}
+      <div className="container mx-auto max-w-2xl px-4 py-6">
+        {/* Top Section Card */}
+        <div className="bg-card rounded-lg p-6 mb-6 space-y-4">
+          {/* New Badge */}
+          {isNew && (
+            <Badge className="bg-purple-100 text-primary hover:bg-purple-100 border-0">
+              New
+            </Badge>
+          )}
+
+          {/* Job Title */}
+          <h1 className="text-foreground text-2xl md:text-3xl font-bold leading-tight">
+            {job.title}
+          </h1>
+
+          {/* Posted Date */}
+          {postedDate && (
+            <p className="text-foreground text-sm">
+              Posted {postedDate}
+            </p>
+          )}
+
+          {/* Wage and Employment Type */}
+          {(wageRange || job.employment_type) && (
+            <div className="flex items-start gap-3">
+              <Banknote className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
+              <p className="text-foreground text-base">
+                {wageRange}
+                {wageRange && job.employment_type && ' • '}
+                {job.employment_type}
+              </p>
+            </div>
+          )}
+
+          {/* Company Name */}
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 flex-shrink-0 mt-0.5">
+              <div className="w-5 h-5 bg-muted rounded" />
+            </div>
+            <p className="text-foreground text-base font-semibold">
               {job.company}
             </p>
-            <h1 className="text-foreground">{job.title}</h1>
           </div>
 
-          {/* Meta tags */}
-          <div className="flex flex-wrap gap-2">
-            {isNew && (
-              <Badge variant="default" className="bg-primary">
-                New
-              </Badge>
-            )}
-            {isRecentlyUpdated && (
-              <Badge variant="secondary">Recently Updated</Badge>
-            )}
-            {job.employment_type && (
-              <Badge variant="outline">{job.employment_type}</Badge>
-            )}
-            {wageRange && <Badge variant="outline">{wageRange}</Badge>}
-            {job.postal_code && (
-              <Badge variant="outline">{job.postal_code}</Badge>
-            )}
-            {postedDate && (
-              <Badge variant="outline">Posted {postedDate}</Badge>
-            )}
-            {job.is_active === false && (
-              <Badge variant="destructive">May No Longer Be Active</Badge>
-            )}
+          {/* Address */}
+          <div className="flex items-start gap-3">
+            <MapPin className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
+            <div className="text-foreground text-base">
+              {addressLines.map((line, idx) => (
+                <div key={idx}>{line}</div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Description */}
-        <div className="space-y-6 bg-card p-6 rounded-[var(--radius-card)] border border-border">
-          <h2>Job Description</h2>
-          {sanitizedDescription ? (
+        {/* Job Description Section */}
+        {sanitizedDescription && (
+          <div className="bg-card rounded-lg p-6 mb-6 space-y-4">
+            <h2 className="text-foreground text-xl font-bold">Job Description</h2>
             <div
               className="prose-custom text-foreground"
               style={{
@@ -194,79 +241,63 @@ export function JobDetail() {
               }}
               dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
-          ) : (
-            <p className="text-muted-foreground">No description available</p>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Additional info from extra field */}
+        {/* Extra Fields Sections */}
         {job.extra && typeof job.extra === 'object' && (
           <div className="space-y-6">
             {Object.entries(job.extra).map(([key, value]) => {
-              if (!value) return null;
+              if (!value || key === 'address') return null;
+
+              // Format section header
+              const sectionTitle = key
+                .replace(/_/g, ' ')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+
               return (
-                <div key={key} className="space-y-3 bg-card p-6 rounded-[var(--radius-card)] border border-border">
-                  <h3 className="capitalize text-foreground">{key.replace(/_/g, ' ')}</h3>
+                <div key={key} className="bg-card rounded-lg p-6 space-y-4">
+                  <h2 className="text-foreground text-xl font-bold">{sectionTitle}</h2>
                   {Array.isArray(value) ? (
-                    <ul className="space-y-2 pl-1">
+                    <ul className="space-y-2 list-disc pl-5">
                       {value.map((item, idx) => (
-                        <li key={idx} className="flex items-start gap-3">
-                          <span className="text-primary mt-1 flex-shrink-0">✓</span>
-                          <span className="text-foreground" style={{ fontSize: 'var(--text-base)' }}>
-                            {item}
-                          </span>
+                        <li key={idx} className="text-foreground text-base leading-relaxed">
+                          {item}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-foreground">{String(value)}</p>
+                    <p className="text-foreground text-base leading-relaxed">{String(value)}</p>
                   )}
                 </div>
               );
             })}
           </div>
         )}
-      </div>
 
-      {/* Application Form - Sticky at bottom */}
-      <ApplicationForm 
-        jobReferenceNumber={job.referencenumber} 
-        onSubmit={handleApplicationSubmit}
-      />
+        {/* Application Form */}
+        <ApplicationForm
+          jobReferenceNumber={job.referencenumber}
+          onSubmit={handleApplicationSubmit}
+        />
 
-      {/* Footer metadata */}
-      <div className="border-t border-border pt-4 mt-8 space-y-1 text-muted-foreground">
-        {job.referencenumber && (
-          <p>Reference: {job.referencenumber}</p>
-        )}
-        {job.publisher && <p>Publisher: {job.publisher}</p>}
-        {job.updated_at && (
-          <p>
-            Last updated:{' '}
-            {formatDistance(new Date(job.updated_at), new Date(), {
-              addSuffix: true,
-            })}
-          </p>
-        )}
-        {job.job_url && (
-          <p>
-            <a
-              href={job.job_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-            >
-              View original posting
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </p>
-        )}
+        {/* Footer Metadata */}
+        <div className="mt-8 pt-6 border-t border-border space-y-1 text-xs text-muted-foreground">
+          {job.referencenumber && (
+            <p>Reference: {job.referencenumber}</p>
+          )}
+          {job.is_active === false && (
+            <p className="text-destructive">This job may no longer be active</p>
+          )}
+        </div>
       </div>
 
       {/* Payload Modal */}
-      <PayloadModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <PayloadModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         payload={payload}
       />
     </div>
