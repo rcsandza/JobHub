@@ -143,34 +143,35 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit }: ApplicationFor
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Fields Container */}
         <div className="space-y-5">
-          {/* First Name */}
-          <div className="space-y-2">
-            <label htmlFor="firstName" className="text-sm font-bold block" style={{ color: 'var(--text-secondary, #605F56)', lineHeight: '21px' }}>
-              First name <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="firstName"
-              name="firstName"
-              type="text"
-              required
-              value={formData.firstName}
-              onChange={handleInputChange}
-            />
-          </div>
+          {/* First and Last Name - Side by Side on Desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+            <div className="space-y-2">
+              <label htmlFor="firstName" className="text-sm font-bold block" style={{ color: 'var(--text-secondary, #605F56)', lineHeight: '21px' }}>
+                First name <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                value={formData.firstName}
+                onChange={handleInputChange}
+              />
+            </div>
 
-          {/* Last Name */}
-          <div className="space-y-2">
-            <label htmlFor="lastName" className="text-sm font-bold block" style={{ color: 'var(--text-secondary, #605F56)', lineHeight: '21px' }}>
-              Last name <span className="text-destructive">*</span>
-            </label>
-            <Input
-              id="lastName"
-              name="lastName"
-              type="text"
-              required
-              value={formData.lastName}
-              onChange={handleInputChange}
-            />
+            <div className="space-y-2">
+              <label htmlFor="lastName" className="text-sm font-bold block" style={{ color: 'var(--text-secondary, #605F56)', lineHeight: '21px' }}>
+                Last name <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                value={formData.lastName}
+                onChange={handleInputChange}
+              />
+            </div>
           </div>
 
           {/* Email */}
@@ -221,6 +222,43 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit }: ApplicationFor
           </div>
         </div>
 
+        {/* Checkbox Options */}
+        <div className="space-y-4">
+          {/* Job Alerts Checkbox */}
+          <div className="flex items-start gap-2.5">
+            <input
+              type="checkbox"
+              id="jobAlerts"
+              checked={receiveJobAlerts}
+              onChange={(e) => setReceiveJobAlerts(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer flex-shrink-0"
+              style={{
+                accentColor: 'var(--primary)',
+              }}
+            />
+            <label htmlFor="jobAlerts" className="text-foreground text-base font-medium cursor-pointer flex-1" style={{ lineHeight: '24px' }}>
+              Receive alerts for more Assistant Kitchen Manager jobs in Los Angeles
+            </label>
+          </div>
+
+          {/* Company Alerts Checkbox */}
+          <div className="flex items-start gap-2.5">
+            <input
+              type="checkbox"
+              id="companyAlerts"
+              checked={receiveCompanyAlerts}
+              onChange={(e) => setReceiveCompanyAlerts(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer flex-shrink-0"
+              style={{
+                accentColor: 'var(--primary)',
+              }}
+            />
+            <label htmlFor="companyAlerts" className="text-foreground text-base font-medium cursor-pointer flex-1" style={{ lineHeight: '24px' }}>
+              Receive alerts for more jobs from Limonata by Paninos
+            </label>
+          </div>
+        </div>
+
         {/* Resume Upload */}
         <div className="space-y-2">
           <Input
@@ -268,51 +306,16 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit }: ApplicationFor
           )}
         </div>
 
-        {/* Checkbox Options */}
-        <div className="space-y-4">
-          {/* Job Alerts Checkbox */}
-          <div className="flex items-start gap-2.5">
-            <input
-              type="checkbox"
-              id="jobAlerts"
-              checked={receiveJobAlerts}
-              onChange={(e) => setReceiveJobAlerts(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer flex-shrink-0"
-              style={{
-                accentColor: 'var(--primary)',
-              }}
-            />
-            <label htmlFor="jobAlerts" className="text-foreground text-base font-medium cursor-pointer flex-1" style={{ lineHeight: '24px' }}>
-              Receive alerts for more Assistant Kitchen Manager jobs in Los Angeles
-            </label>
-          </div>
-
-          {/* Company Alerts Checkbox */}
-          <div className="flex items-start gap-2.5">
-            <input
-              type="checkbox"
-              id="companyAlerts"
-              checked={receiveCompanyAlerts}
-              onChange={(e) => setReceiveCompanyAlerts(e.target.checked)}
-              className="mt-1 h-4 w-4 rounded border-2 border-border text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer flex-shrink-0"
-              style={{
-                accentColor: 'var(--primary)',
-              }}
-            />
-            <label htmlFor="companyAlerts" className="text-foreground text-base font-medium cursor-pointer flex-1" style={{ lineHeight: '24px' }}>
-              Receive alerts for more jobs from Limonata by Paninos
-            </label>
-          </div>
+        {/* Submit Button - Right aligned on desktop */}
+        <div className="lg:flex lg:justify-end">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full lg:w-auto bg-primary hover:bg-primary/90 text-primary-foreground h-12 lg:h-10 lg:px-8 text-base font-bold rounded-lg"
+          >
+            {isSubmitting ? 'Processing...' : 'Submit application'}
+          </Button>
         </div>
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 lg:h-10 text-base font-bold rounded-lg"
-        >
-          {isSubmitting ? 'Processing...' : 'Submit application'}
-        </Button>
       </form>
     </div>
   );

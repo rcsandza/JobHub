@@ -192,7 +192,7 @@ export function JobDetail() {
         <div className="container mx-auto w-full max-w-[800px] px-4 md:px-6 py-4 md:py-5">
         {/* Top Section Card */}
         <div className="bg-card rounded-lg p-6 md:p-6 mb-4 md:mb-5">
-          {/* Top Section: Badge, Title, Posted Date */}
+          {/* Top Section: Badge, Title, Posted Date, Apply Button */}
           <div className="space-y-5">
             {/* New Badge */}
             {isNew && (
@@ -201,16 +201,27 @@ export function JobDetail() {
               </Badge>
             )}
 
-            {/* Job Title and Posted Date */}
-            <div className="space-y-0.5">
-              <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
-                {job.title}
-              </h1>
-              {postedDate && (
-                <p className="text-foreground text-sm">
-                  Posted {postedDate}
-                </p>
-              )}
+            {/* Job Title and Posted Date with Apply Button */}
+            <div className="flex items-center justify-between gap-6">
+              {/* Left: Title and Posted Date */}
+              <div className="space-y-0.5 flex-1">
+                <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
+                  {job.title}
+                </h1>
+                {postedDate && (
+                  <p className="text-foreground text-sm">
+                    Posted {postedDate}
+                  </p>
+                )}
+              </div>
+
+              {/* Right: Desktop Apply Button */}
+              <Button
+                onClick={scrollToApplication}
+                className="hidden lg:block bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-6 text-base font-semibold rounded-lg flex-shrink-0"
+              >
+                Apply
+              </Button>
             </div>
           </div>
 
@@ -218,7 +229,7 @@ export function JobDetail() {
           <div className="border-t border-border my-5"></div>
 
           {/* Details Section */}
-          <div className="space-y-5 mb-8">
+          <div className="space-y-5 mb-5">
             {/* Wage, Employment Type, and Shift Preference */}
             <div className="flex items-start gap-3.5">
               <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
@@ -251,10 +262,10 @@ export function JobDetail() {
             </div>
           </div>
 
-          {/* Apply Button */}
+          {/* Mobile Apply Button */}
           <Button
             onClick={scrollToApplication}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 lg:h-10 text-base font-semibold rounded-lg"
+            className="w-full lg:hidden bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold rounded-lg"
           >
             Apply
           </Button>

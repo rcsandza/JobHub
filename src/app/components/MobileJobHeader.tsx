@@ -45,7 +45,7 @@ export function MobileJobHeader({ title }: MobileJobHeaderProps) {
 
   return (
     <div className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="container mx-auto max-w-4xl px-4">
+      <div className="container mx-auto w-full max-w-[800px] px-4 md:px-6">
         <div className="flex items-center justify-between py-4">
           {/* Back Button */}
           <Button
