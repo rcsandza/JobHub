@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { TopBar } from './TopBar';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 
@@ -112,15 +113,17 @@ export function JobsList() {
   }
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-foreground">Job Listings</h1>
-          <p className="text-muted-foreground" style={{ fontSize: 'var(--text-base)' }}>
-            Browse all available positions ({totalCount} total)
-          </p>
-        </div>
+    <>
+      <TopBar />
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-foreground">Job Listings</h1>
+            <p className="text-muted-foreground" style={{ fontSize: 'var(--text-base)' }}>
+              Browse all available positions ({totalCount} total)
+            </p>
+          </div>
 
         {/* Search Filters */}
         <div className="bg-card p-6 rounded-[var(--radius-card)] border border-border space-y-4">
@@ -216,7 +219,7 @@ export function JobsList() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-muted-foreground uppercase tracking-wide" style={{ fontSize: 'var(--text-sm)' }}>
+                          <p className="text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
                             {job.company}
                           </p>
                           {isNew(job.created_at) && (
@@ -293,5 +296,6 @@ export function JobsList() {
         )}
       </div>
     </div>
+    </>
   );
 }

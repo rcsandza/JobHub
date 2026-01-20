@@ -91,6 +91,8 @@
   --text-lg: 20px;
   --text-xl: 24px;
   --text-2xl: 28px;
+  /* Text secondary color */
+  --text-secondary: #605F56;
 }
 
 .dark {
@@ -182,74 +184,83 @@
   }
 }
 
+/* Designbase Typography System */
+
 h1 {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-2xl);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.5;
+  font-size: var(--text-2xl); /* 28px */
+  font-weight: var(--font-weight-bold); /* 700 */
+  line-height: 38px;
 }
 
 h2 {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.5;
+  font-size: var(--text-xl); /* 24px */
+  font-weight: var(--font-weight-bold); /* 700 */
+  line-height: 34px;
 }
 
 h3 {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.5;
+  font-size: var(--text-lg); /* 20px */
+  font-weight: var(--font-weight-bold); /* 700 */
+  line-height: 30px;
 }
 
 h4 {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.5;
+  font-size: var(--text-base); /* 16px */
+  font-weight: var(--font-weight-bold); /* 700 */
+  line-height: 28px;
 }
 
 p {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
+  font-size: var(--text-base); /* 16px */
+  font-weight: var(--font-weight-medium); /* 500 */
+  line-height: 24px;
 }
 
 span {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
+  font-size: var(--text-base); /* 16px */
+  font-weight: var(--font-weight-medium); /* 500 */
+  line-height: 24px;
 }
 
 label {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.5;
+  font-size: var(--text-xs); /* 12px */
+  font-weight: var(--font-weight-bold); /* 700 */
+  line-height: 18px;
 }
 
 .caption {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.5;
+  font-size: var(--text-xs); /* 12px */
+  font-weight: var(--font-weight-medium); /* 500 */
+  line-height: 18px;
+}
+
+.body-sm {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: var(--text-sm); /* 14px */
+  font-weight: var(--font-weight-medium); /* 500 */
+  line-height: 24px;
 }
 
 button {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
+  font-size: var(--text-base); /* 16px */
+  font-weight: var(--font-weight-medium); /* 500 */
+  line-height: 24px;
 }
 
 input {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-normal);
-  line-height: 1.5;
+  font-size: var(--text-base); /* 16px */
+  font-weight: var(--font-weight-normal); /* 400 */
+  line-height: 24px;
 }
 
 html {

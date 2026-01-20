@@ -4,12 +4,13 @@ import DOMPurify from 'dompurify';
 import { formatDistance } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { JobDetailSkeleton } from './JobDetailSkeleton';
+import { TopBar } from './TopBar';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { ApplicationForm } from './ApplicationForm';
 import { PayloadModal } from './PayloadModal';
-import { MobileJobHeader } from './MobileJobHeader';
-import { Banknote, MapPin } from 'lucide-react';
+import { Banknote, MapPin, Building2 } from 'lucide-react';
 
 interface Job {
   id: string;
@@ -123,14 +124,20 @@ export function JobDetail() {
   // Format wage range
   const formatWage = () => {
     if (job.target_wage_rate && job.target_wage_rate_max) {
-      return `$${job.target_wage_rate}–$${job.target_wage_rate_max} per hour`;
+      return `$${job.target_wage_rate}–$${job.target_wage_rate_max}/hr`;
     } else if (job.target_wage_rate) {
-      return `$${job.target_wage_rate}+ per hour`;
+      return `$${job.target_wage_rate}+/hr`;
     }
-    return null;
+    return 'Competitive salary'; // Fallback
   };
 
   const wageRange = formatWage();
+
+  // Format wage with employment type
+  const wageWithType = `${wageRange} • ${job.employment_type || 'Full-time'}`;
+
+  // Get shift preference from extra data or use fallback
+  const shiftPreference = job.extra?.shift_preference || 'Flexible schedule';
 
   // Format full address
   const formatAddress = () => {
@@ -144,18 +151,20 @@ export function JobDetail() {
     if (job.extra?.street_address) {
       parts.push(job.extra.street_address);
     }
-    if (job.extra?.city || job.postal_code) {
-      const cityLine = [
-        job.extra?.city,
-        job.extra?.state,
-        job.postal_code
-      ].filter(Boolean).join(', ');
-      if (cityLine) parts.push(cityLine);
-    }
-    if (parts.length === 0 && job.postal_code) {
+
+    // City, State ZIP on one line
+    const cityStateLine = [
+      job.extra?.city,
+      job.extra?.state,
+      job.postal_code
+    ].filter(Boolean).join(', ');
+
+    if (cityStateLine) {
+      parts.push(cityStateLine);
+    } else if (job.postal_code) {
+      // If we only have ZIP, show it
       parts.push(job.postal_code);
     }
-    parts.push('USA');
 
     return parts.filter(Boolean).join('\n') || 'Location not specified';
   };
@@ -168,76 +177,98 @@ export function JobDetail() {
     ? DOMPurify.sanitize(job.description_html)
     : null;
 
+  const scrollToApplication = () => {
+    const formElement = document.getElementById('application-form');
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Mobile Job Header */}
-      <MobileJobHeader title={job.title} />
-
-      {/* Main Content */}
-      <div className="container mx-auto max-w-2xl px-4 py-6">
+    <>
+      <TopBar jobTitle={job?.title} />
+      <div className="min-h-screen bg-background">
+        {/* Main Content */}
+        <div className="container mx-auto w-full max-w-[800px] px-4 md:px-6 py-4 md:py-5">
         {/* Top Section Card */}
-        <div className="bg-card rounded-lg p-6 mb-6 space-y-4">
-          {/* New Badge */}
-          {isNew && (
-            <Badge className="bg-purple-100 text-primary hover:bg-purple-100 border-0">
-              New
-            </Badge>
-          )}
+        <div className="bg-card rounded-lg p-6 md:p-6 mb-4 md:mb-5">
+          {/* Top Section: Badge, Title, Posted Date */}
+          <div className="space-y-5">
+            {/* New Badge */}
+            {isNew && (
+              <Badge className="bg-purple-100 text-primary hover:bg-purple-100 border-0 text-xs font-bold px-3 py-1">
+                New
+              </Badge>
+            )}
 
-          {/* Job Title */}
-          <h1 className="text-foreground text-2xl md:text-3xl font-bold leading-tight">
-            {job.title}
-          </h1>
+            {/* Job Title and Posted Date */}
+            <div className="space-y-0.5">
+              <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
+                {job.title}
+              </h1>
+              {postedDate && (
+                <p className="text-foreground text-sm">
+                  Posted {postedDate}
+                </p>
+              )}
+            </div>
+          </div>
 
-          {/* Posted Date */}
-          {postedDate && (
-            <p className="text-foreground text-sm">
-              Posted {postedDate}
-            </p>
-          )}
+          {/* Divider */}
+          <div className="border-t border-border my-5"></div>
 
-          {/* Wage and Employment Type */}
-          {(wageRange || job.employment_type) && (
-            <div className="flex items-start gap-3">
-              <Banknote className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
-              <p className="text-foreground text-base">
-                {wageRange}
-                {wageRange && job.employment_type && ' • '}
-                {job.employment_type}
+          {/* Details Section */}
+          <div className="space-y-5 mb-8">
+            {/* Wage, Employment Type, and Shift Preference */}
+            <div className="flex items-start gap-3.5">
+              <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
+              <div className="space-y-0.5">
+                <p className="text-foreground text-base font-medium">
+                  {wageWithType}
+                </p>
+                <p className="text-muted-foreground text-base font-medium">
+                  {shiftPreference}
+                </p>
+              </div>
+            </div>
+
+            {/* Company Name */}
+            <div className="flex items-start gap-3.5">
+              <Building2 className="h-6 w-6 text-foreground flex-shrink-0" />
+              <p className="text-foreground text-base font-medium">
+                {job.company}
               </p>
             </div>
-          )}
 
-          {/* Company Name */}
-          <div className="flex items-start gap-3">
-            <div className="w-5 h-5 flex-shrink-0 mt-0.5">
-              <div className="w-5 h-5 bg-muted rounded" />
-            </div>
-            <p className="text-foreground text-base font-semibold">
-              {job.company}
-            </p>
-          </div>
-
-          {/* Address */}
-          <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
-            <div className="text-foreground text-base">
-              {addressLines.map((line, idx) => (
-                <div key={idx}>{line}</div>
-              ))}
+            {/* Address */}
+            <div className="flex items-start gap-3.5">
+              <MapPin className="h-6 w-6 text-foreground flex-shrink-0" />
+              <div className="text-foreground text-base font-medium">
+                {addressLines.map((line, idx) => (
+                  <div key={idx}>{line}</div>
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* Apply Button */}
+          <Button
+            onClick={scrollToApplication}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 lg:h-10 text-base font-semibold rounded-lg"
+          >
+            Apply
+          </Button>
         </div>
 
         {/* Job Description Section */}
         {sanitizedDescription && (
-          <div className="bg-card rounded-lg p-6 mb-6 space-y-4">
-            <h2 className="text-foreground text-xl font-bold">Job Description</h2>
+          <div className="bg-card rounded-lg p-5 md:p-6 mb-4 md:mb-5 space-y-4">
+            <h2 className="text-foreground text-lg md:text-xl font-bold">Job Description</h2>
             <div
               className="prose-custom text-foreground"
               style={{
-                fontSize: 'var(--text-base)',
-                lineHeight: '1.75'
+                fontSize: '18px',
+                lineHeight: '1.5'
               }}
               dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
@@ -246,7 +277,7 @@ export function JobDetail() {
 
         {/* Extra Fields Sections */}
         {job.extra && typeof job.extra === 'object' && (
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-5">
             {Object.entries(job.extra).map(([key, value]) => {
               if (!value || key === 'address') return null;
 
@@ -258,8 +289,8 @@ export function JobDetail() {
                 .join(' ');
 
               return (
-                <div key={key} className="bg-card rounded-lg p-6 space-y-4">
-                  <h2 className="text-foreground text-xl font-bold">{sectionTitle}</h2>
+                <div key={key} className="bg-card rounded-lg p-5 md:p-6 space-y-4">
+                  <h2 className="text-foreground text-lg md:text-xl font-bold">{sectionTitle}</h2>
                   {Array.isArray(value) ? (
                     <ul className="space-y-2 list-disc pl-5">
                       {value.map((item, idx) => (
@@ -278,10 +309,20 @@ export function JobDetail() {
         )}
 
         {/* Application Form */}
-        <ApplicationForm
-          jobReferenceNumber={job.referencenumber}
-          onSubmit={handleApplicationSubmit}
-        />
+        <div id="application-form">
+          <ApplicationForm
+            jobReferenceNumber={job.referencenumber}
+            onSubmit={handleApplicationSubmit}
+          />
+        </div>
+
+        {/* Powered by Homebase */}
+        <div className="text-center mt-6">
+          <p className="text-base font-normal">
+            <span className="text-muted-foreground">Powered by </span>
+            <span className="text-primary font-medium">homebase</span>
+          </p>
+        </div>
 
         {/* Footer Metadata */}
         <div className="mt-8 pt-6 border-t border-border space-y-1 text-xs text-muted-foreground">
@@ -300,6 +341,7 @@ export function JobDetail() {
         onClose={() => setIsModalOpen(false)}
         payload={payload}
       />
-    </div>
+      </div>
+    </>
   );
 }
