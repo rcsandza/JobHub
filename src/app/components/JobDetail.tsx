@@ -10,7 +10,7 @@ import { Button } from './ui/button';
 import { Alert, AlertDescription } from './ui/alert';
 import { ApplicationForm } from './ApplicationForm';
 import { PayloadModal } from './PayloadModal';
-import { Banknote, MapPin, Building2 } from 'lucide-react';
+import { Banknote, MapPin, Building2, CalendarClock, ChevronRight } from 'lucide-react';
 
 interface Job {
   id: string;
@@ -189,10 +189,10 @@ export function JobDetail() {
       <TopBar jobTitle={job?.title} />
       <div className="min-h-screen bg-background">
         {/* Main Content */}
-        <div className="container mx-auto w-full max-w-[800px] px-4 md:px-6 py-4 md:py-5">
-        {/* Top Section Card */}
-        <div className="bg-card rounded-lg p-6 md:p-6 mb-4 md:mb-5">
-          {/* Top Section: Badge, Title, Posted Date, Apply Button */}
+        <div className="container mx-auto w-full max-w-[800px] py-4 md:py-5">
+          {/* Top Section Card - Edge to edge on mobile with white background above it */}
+          <div className="bg-card lg:rounded-lg p-6 md:p-6 mb-4 md:mb-5 border-b lg:border border-border lg:mx-4 md:mx-6 -mt-4 md:-mt-5 lg:mt-0">
+          {/* Top Section: Badge, Title, Company, Posted Date, Apply Button */}
           <div className="space-y-5">
             {/* New Badge */}
             {isNew && (
@@ -201,8 +201,24 @@ export function JobDetail() {
               </Badge>
             )}
 
-            {/* Job Title and Posted Date with Apply Button */}
-            <div className="flex items-center justify-between gap-6">
+            {/* Mobile: Title, Company, Posted Date */}
+            <div className="space-y-2 lg:hidden">
+              <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
+                {job.title}
+              </h1>
+              <button className="inline-flex items-center gap-2 text-primary font-bold text-base underline hover:opacity-80 transition-opacity">
+                {job.company}
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              {postedDate && (
+                <p className="text-foreground text-sm">
+                  Posted {postedDate}
+                </p>
+              )}
+            </div>
+
+            {/* Desktop: Title, Posted Date with Apply Button */}
+            <div className="hidden lg:flex items-center justify-between gap-6">
               {/* Left: Title and Posted Date */}
               <div className="space-y-0.5 flex-1">
                 <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
@@ -218,7 +234,7 @@ export function JobDetail() {
               {/* Right: Desktop Apply Button */}
               <Button
                 onClick={scrollToApplication}
-                className="hidden lg:block bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-6 text-base font-semibold rounded-lg flex-shrink-0"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground h-10 px-6 text-base font-semibold rounded-lg flex-shrink-0"
               >
                 Apply
               </Button>
@@ -230,21 +246,29 @@ export function JobDetail() {
 
           {/* Details Section */}
           <div className="space-y-5 mb-5">
-            {/* Wage, Employment Type, and Shift Preference */}
-            <div className="flex items-start gap-3.5">
+            {/* Wage */}
+            <div className="flex items-center gap-4">
               <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
-              <div className="space-y-0.5">
+              <p className="text-foreground text-base font-medium">
+                {wageRange}
+              </p>
+            </div>
+
+            {/* Shift Time - Mobile Only */}
+            <div className="flex items-start gap-4 lg:hidden">
+              <CalendarClock className="h-6 w-6 text-foreground flex-shrink-0" />
+              <div className="flex flex-col gap-0.5">
                 <p className="text-foreground text-base font-medium">
-                  {wageWithType}
+                  {job.employment_type || 'Full-time'}  •  Weekdays
                 </p>
                 <p className="text-muted-foreground text-base font-medium">
-                  {shiftPreference}
+                  Afternoons and evenings
                 </p>
               </div>
             </div>
 
-            {/* Company Name */}
-            <div className="flex items-start gap-3.5">
+            {/* Company Name - Desktop Only */}
+            <div className="hidden lg:flex items-center gap-4">
               <Building2 className="h-6 w-6 text-foreground flex-shrink-0" />
               <p className="text-foreground text-base font-medium">
                 {job.company}
@@ -252,7 +276,7 @@ export function JobDetail() {
             </div>
 
             {/* Address */}
-            <div className="flex items-start gap-3.5">
+            <div className="flex items-start gap-4">
               <MapPin className="h-6 w-6 text-foreground flex-shrink-0" />
               <div className="text-foreground text-base font-medium">
                 {addressLines.map((line, idx) => (
@@ -273,13 +297,14 @@ export function JobDetail() {
 
         {/* Job Description Section */}
         {sanitizedDescription && (
-          <div className="bg-card rounded-lg p-5 md:p-6 mb-4 md:mb-5 space-y-4">
+          <div className="bg-card rounded-lg p-5 md:p-6 mb-4 md:mb-5 space-y-4 mx-4 lg:mx-4 md:mx-6">
             <h2 className="text-foreground text-lg md:text-xl font-bold">Job Description</h2>
             <div
               className="prose-custom text-foreground"
               style={{
-                fontSize: '18px',
-                lineHeight: '1.5'
+                fontSize: '16px',
+                lineHeight: '1.5',
+                fontWeight: 500
               }}
               dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
             />
@@ -288,7 +313,7 @@ export function JobDetail() {
 
         {/* Extra Fields Sections */}
         {job.extra && typeof job.extra === 'object' && (
-          <div className="space-y-4 md:space-y-5">
+          <div className="space-y-4 md:space-y-5 mx-4 lg:mx-4 md:mx-6">
             {Object.entries(job.extra).map(([key, value]) => {
               if (!value || key === 'address') return null;
 
@@ -320,7 +345,7 @@ export function JobDetail() {
         )}
 
         {/* Application Form */}
-        <div id="application-form">
+        <div id="application-form" className="mx-4 lg:mx-4 md:mx-6">
           <ApplicationForm
             jobReferenceNumber={job.referencenumber}
             onSubmit={handleApplicationSubmit}
@@ -328,7 +353,7 @@ export function JobDetail() {
         </div>
 
         {/* Powered by Homebase */}
-        <div className="text-center mt-6">
+        <div className="text-center mt-6 mx-4 lg:mx-4 md:mx-6">
           <p className="text-base font-normal">
             <span className="text-muted-foreground">Powered by </span>
             <span className="text-primary font-medium">homebase</span>
@@ -336,13 +361,14 @@ export function JobDetail() {
         </div>
 
         {/* Footer Metadata */}
-        <div className="mt-8 pt-6 border-t border-border space-y-1 text-xs text-muted-foreground">
+        <div className="mt-8 pt-6 border-t border-border space-y-1 text-xs text-muted-foreground mx-4 lg:mx-4 md:mx-6">
           {job.referencenumber && (
             <p>Reference: {job.referencenumber}</p>
           )}
           {job.is_active === false && (
             <p className="text-destructive">This job may no longer be active</p>
           )}
+        </div>
         </div>
       </div>
 
@@ -352,7 +378,6 @@ export function JobDetail() {
         onClose={() => setIsModalOpen(false)}
         payload={payload}
       />
-      </div>
     </>
   );
 }

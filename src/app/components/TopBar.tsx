@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Briefcase } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface TopBarProps {
   jobTitle?: string;
@@ -14,6 +15,30 @@ function BackButton() {
 }
 
 export function TopBar({ jobTitle }: TopBarProps = {}) {
+  const [showTitle, setShowTitle] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+  useEffect(() => {
+    if (!jobTitle) return;
+
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setShowTitle(scrollPosition > 100);
+    };
+
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [jobTitle]);
+
   return (
     <div className="sticky top-0 z-50 w-full border-b border-border bg-card shadow-[var(--elevation-sm)]">
       <div className="container mx-auto flex h-16 items-center px-4">
@@ -21,7 +46,9 @@ export function TopBar({ jobTitle }: TopBarProps = {}) {
           {jobTitle ? (
             <>
               <BackButton />
-              <span className="text-foreground text-base font-bold truncate" style={{ lineHeight: '24px' }}>{jobTitle}</span>
+              {(showTitle || isDesktop) && (
+                <span className="text-foreground text-base font-bold truncate" style={{ lineHeight: '24px' }}>{jobTitle}</span>
+              )}
             </>
           ) : (
             <>
