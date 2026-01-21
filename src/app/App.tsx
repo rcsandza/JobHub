@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { TopBar } from './components/TopBar';
 import { JobDetail } from './components/JobDetail';
 import { JobsList } from './components/JobsList';
 import { PassphraseGuard } from './components/PassphraseGuard';
@@ -8,7 +7,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen flex flex-col bg-background">
-        <TopBar />
         <main className="flex-1">
           <Routes>
             {/* Jobs list as home page */}
