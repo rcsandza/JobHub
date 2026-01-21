@@ -363,7 +363,21 @@ export function JobDetail() {
         {/* Footer Metadata */}
         <div className="mt-8 pt-6 border-t border-border space-y-1 text-xs text-muted-foreground mx-4 lg:mx-4 md:mx-6">
           {job.referencenumber && (
-            <p>Reference: {job.referencenumber}</p>
+            <p>
+              Reference:{' '}
+              {job.job_url ? (
+                <a
+                  href={job.job_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:opacity-80 transition-opacity"
+                >
+                  {job.referencenumber}
+                </a>
+              ) : (
+                job.referencenumber
+              )}
+            </p>
           )}
           {job.is_active === false && (
             <p className="text-destructive">This job may no longer be active</p>
