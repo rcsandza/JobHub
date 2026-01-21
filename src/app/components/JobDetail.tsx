@@ -17,6 +17,7 @@ interface Job {
   referencenumber: string | null;
   title: string;
   company: string;
+  company_url: string | null;
   job_url: string | null;
   postal_code: string | null;
   description_html: string | null;
@@ -31,6 +32,8 @@ interface Job {
   location_id: string | null;
   slug: string | null;
   employment_type: string | null;
+  compensation_min: number | null;
+  compensation_max: number | null;
   target_wage_rate: number | null;
   target_wage_rate_max: number | null;
   publisher: string | null;
@@ -38,6 +41,12 @@ interface Job {
   last_build_date: string | null;
   job_count: number | null;
   notes: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  address: string | null;
+  schedule_days: string | null;
+  schedule_times: string | null;
 }
 
 export function JobDetail() {
@@ -78,6 +87,14 @@ export function JobDetail() {
         }
 
         setJob(data);
+        console.log('Job data loaded:', {
+          title: data.title,
+          compensation_min: data.compensation_min,
+          compensation_max: data.compensation_max,
+          employment_type: data.employment_type,
+          schedule_days: data.schedule_days,
+          schedule_times: data.schedule_times,
+        });
       } catch (err) {
         console.error('Unexpected error:', err);
         setError('An unexpected error occurred');
@@ -123,10 +140,14 @@ export function JobDetail() {
 
   // Format wage range
   const formatWage = () => {
-    if (job.target_wage_rate && job.target_wage_rate_max) {
-      return `$${job.target_wage_rate}–$${job.target_wage_rate_max}/hr`;
-    } else if (job.target_wage_rate) {
-      return `$${job.target_wage_rate}+/hr`;
+    // Use compensation_min/max first, fallback to target_wage_rate for backwards compatibility
+    const minWage = job.compensation_min ?? job.target_wage_rate;
+    const maxWage = job.compensation_max ?? job.target_wage_rate_max;
+
+    if (minWage && maxWage) {
+      return `$${minWage}–$${maxWage}/hr`;
+    } else if (minWage) {
+      return `$${minWage}+/hr`;
     }
     return 'Competitive salary'; // Fallback
   };
@@ -136,14 +157,23 @@ export function JobDetail() {
   // Format wage with employment type
   const wageWithType = `${wageRange} • ${job.employment_type || 'Full-time'}`;
 
-  // Get shift preference from extra data or use fallback
-  const shiftPreference = job.extra?.shift_preference || 'Flexible schedule';
+  // Get shift preference from extra data or use schedule fields
+  const shiftPreference = job.schedule_times || job.extra?.shift_preference || 'Flexible schedule';
+
+  // Format Google Maps URL from address
+  const getGoogleMapsUrl = () => {
+    if (!job.address) return null;
+    const encodedAddress = encodeURIComponent(job.address);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  };
+
+  const mapsUrl = getGoogleMapsUrl();
 
   // Format full address
   const formatAddress = () => {
-    // Try to build address from extra field
-    if (job.extra?.address) {
-      return job.extra.address;
+    // Use address column if available
+    if (job.address) {
+      return job.address;
     }
 
     // Build address from available fields
@@ -206,10 +236,15 @@ export function JobDetail() {
               <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
                 {job.title}
               </h1>
-              <button className="inline-flex items-center gap-2 text-primary font-bold text-base underline hover:opacity-80 transition-opacity">
+              <a
+                href={job.company_url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-primary font-bold text-base underline hover:opacity-80 transition-opacity"
+              >
                 {job.company}
                 <ChevronRight className="h-4 w-4" />
-              </button>
+              </a>
               {postedDate && (
                 <p className="text-foreground text-sm">
                   Posted {postedDate}
@@ -259,29 +294,51 @@ export function JobDetail() {
               <CalendarClock className="h-6 w-6 text-foreground flex-shrink-0" />
               <div className="flex flex-col gap-0.5">
                 <p className="text-foreground text-base font-medium">
-                  {job.employment_type || 'Full-time'}  •  Weekdays
+                  {job.employment_type || 'Full-time'}{job.schedule_days && ` • ${job.schedule_days}`}
                 </p>
-                <p className="text-muted-foreground text-base font-medium">
-                  Afternoons and evenings
-                </p>
+                {job.schedule_times && (
+                  <p className="text-muted-foreground text-base font-medium">
+                    {job.schedule_times}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Company Name - Desktop Only */}
             <div className="hidden lg:flex items-center gap-4">
               <Building2 className="h-6 w-6 text-foreground flex-shrink-0" />
-              <p className="text-foreground text-base font-medium">
+              <a
+                href={job.company_url || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground text-base font-medium hover:underline"
+              >
                 {job.company}
-              </p>
+              </a>
             </div>
 
             {/* Address */}
             <div className="flex items-start gap-4">
               <MapPin className="h-6 w-6 text-foreground flex-shrink-0" />
               <div className="text-foreground text-base font-medium">
-                {addressLines.map((line, idx) => (
-                  <div key={idx}>{line}</div>
-                ))}
+                {mapsUrl ? (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                  >
+                    {addressLines.map((line, idx) => (
+                      <div key={idx}>{line}</div>
+                    ))}
+                  </a>
+                ) : (
+                  <>
+                    {addressLines.map((line, idx) => (
+                      <div key={idx}>{line}</div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           </div>
