@@ -14,28 +14,16 @@
 .prose-custom h1,
 .prose-custom h2,
 .prose-custom h3,
-.prose-custom h4 {
-  color: var(--foreground);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: var(--font-weight-bold);
-  margin-top: 1.75rem;
-  margin-bottom: 1rem;
-}
-
-.prose-custom h1 {
-  font-size: var(--text-2xl);
-}
-
-.prose-custom h2 {
-  font-size: var(--text-xl);
-}
-
-.prose-custom h3 {
-  font-size: var(--text-lg);
-}
-
-.prose-custom h4 {
-  font-size: var(--text-base);
+.prose-custom h4,
+.prose-custom h5,
+.prose-custom h6 {
+  color: #000 !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 24px !important;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
 }
 
 .prose-custom p {

@@ -188,8 +188,11 @@ export function JobDetail() {
     <>
       <TopBar jobTitle={job?.title} />
       <div className="min-h-screen bg-background">
+        {/* White background above card on mobile */}
+        <div className="bg-card lg:bg-transparent h-9 lg:h-0"></div>
+
         {/* Main Content */}
-        <div className="container mx-auto w-full max-w-[800px] py-4 md:py-5">
+        <div className="container mx-auto w-full max-w-[800px] pb-4 md:py-5">
           {/* Top Section Card - Edge to edge on mobile with white background above it */}
           <div className="bg-card lg:rounded-lg p-6 md:p-6 mb-4 md:mb-5 border-b lg:border border-border lg:mx-4 md:mx-6 -mt-4 md:-mt-5 lg:mt-0">
           {/* Top Section: Badge, Title, Company, Posted Date, Apply Button */}
@@ -206,12 +209,12 @@ export function JobDetail() {
               <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
                 {job.title}
               </h1>
-              <button className="inline-flex items-center gap-2 text-primary font-bold text-base underline hover:opacity-80 transition-opacity">
+              <button className="inline-flex items-center gap-2 text-primary text-base font-bold underline hover:opacity-80 transition-opacity">
                 {job.company}
                 <ChevronRight className="h-4 w-4" />
               </button>
               {postedDate && (
-                <p className="text-foreground text-sm">
+                <p className="text-sm" style={{ color: '#605F56' }}>
                   Posted {postedDate}
                 </p>
               )}
@@ -225,7 +228,7 @@ export function JobDetail() {
                   {job.title}
                 </h1>
                 {postedDate && (
-                  <p className="text-foreground text-sm">
+                  <p className="text-sm" style={{ color: '#605F56' }}>
                     Posted {postedDate}
                   </p>
                 )}
@@ -254,29 +257,21 @@ export function JobDetail() {
               </p>
             </div>
 
-            {/* Shift Time - Mobile Only */}
-            <div className="flex items-start gap-4 lg:hidden">
+            {/* Shift Time */}
+            <div className="flex items-center gap-4">
               <CalendarClock className="h-6 w-6 text-foreground flex-shrink-0" />
               <div className="flex flex-col gap-0.5">
                 <p className="text-foreground text-base font-medium">
                   {job.employment_type || 'Full-time'}  •  Weekdays
                 </p>
-                <p className="text-muted-foreground text-base font-medium">
+                <p className="text-base font-medium" style={{ color: '#605F56' }}>
                   Afternoons and evenings
                 </p>
               </div>
             </div>
 
-            {/* Company Name - Desktop Only */}
-            <div className="hidden lg:flex items-center gap-4">
-              <Building2 className="h-6 w-6 text-foreground flex-shrink-0" />
-              <p className="text-foreground text-base font-medium">
-                {job.company}
-              </p>
-            </div>
-
             {/* Address */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-center gap-4">
               <MapPin className="h-6 w-6 text-foreground flex-shrink-0" />
               <div className="text-foreground text-base font-medium">
                 {addressLines.map((line, idx) => (
@@ -298,7 +293,18 @@ export function JobDetail() {
         {/* Job Description Section */}
         {sanitizedDescription && (
           <div className="bg-card rounded-lg p-5 md:p-6 mb-4 md:mb-5 space-y-4 mx-4 lg:mx-4 md:mx-6">
-            <h2 className="text-foreground text-lg md:text-xl font-bold">Job Description</h2>
+            <h2
+              style={{
+                color: '#000',
+                fontFamily: '"Plus Jakarta Sans"',
+                fontSize: '18px',
+                fontWeight: 700,
+                lineHeight: '28px',
+                letterSpacing: '0.18px'
+              }}
+            >
+              Job Description
+            </h2>
             <div
               className="prose-custom text-foreground"
               style={{
