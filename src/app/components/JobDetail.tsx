@@ -9,13 +9,14 @@ import { Alert, AlertDescription } from './ui/alert';
 import { ApplicationForm } from './ApplicationForm';
 import { PayloadModal } from './PayloadModal';
 import { MobileJobHeader } from './MobileJobHeader';
-import { Banknote, MapPin } from 'lucide-react';
+import { Banknote, MapPin, ChevronRight, Calendar } from 'lucide-react';
 
 interface Job {
   id: string;
   referencenumber: string | null;
   title: string;
   company: string;
+  company_url: string | null;
   job_url: string | null;
   postal_code: string | null;
   description_html: string | null;
@@ -30,6 +31,8 @@ interface Job {
   location_id: string | null;
   slug: string | null;
   employment_type: string | null;
+  compensation_min: number | null;
+  compensation_max: number | null;
   target_wage_rate: number | null;
   target_wage_rate_max: number | null;
   publisher: string | null;
@@ -37,6 +40,12 @@ interface Job {
   last_build_date: string | null;
   job_count: number | null;
   notes: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  address: string | null;
+  schedule_days: string | null;
+  schedule_times: string | null;
 }
 
 export function JobDetail() {
@@ -77,6 +86,14 @@ export function JobDetail() {
         }
 
         setJob(data);
+        console.log('Job data loaded:', {
+          title: data.title,
+          compensation_min: data.compensation_min,
+          compensation_max: data.compensation_max,
+          employment_type: data.employment_type,
+          schedule_days: data.schedule_days,
+          schedule_times: data.schedule_times,
+        });
       } catch (err) {
         console.error('Unexpected error:', err);
         setError('An unexpected error occurred');
@@ -122,42 +139,37 @@ export function JobDetail() {
 
   // Format wage range
   const formatWage = () => {
-    if (job.target_wage_rate && job.target_wage_rate_max) {
-      return `$${job.target_wage_rate}–$${job.target_wage_rate_max} per hour`;
-    } else if (job.target_wage_rate) {
-      return `$${job.target_wage_rate}+ per hour`;
+    // Use compensation_min/max first, fallback to target_wage_rate for backwards compatibility
+    const minWage = job.compensation_min ?? job.target_wage_rate;
+    const maxWage = job.compensation_max ?? job.target_wage_rate_max;
+
+    if (minWage && maxWage) {
+      return `$${minWage} - $${maxWage} per hour`;
+    } else if (minWage) {
+      return `$${minWage}+ per hour`;
     }
     return null;
   };
 
   const wageRange = formatWage();
 
+  // Format Google Maps URL from address
+  const getGoogleMapsUrl = () => {
+    if (!job.address) return null;
+    const encodedAddress = encodeURIComponent(job.address);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+  };
+
+  const mapsUrl = getGoogleMapsUrl();
+
   // Format full address
   const formatAddress = () => {
-    // Try to build address from extra field
-    if (job.extra?.address) {
-      return job.extra.address;
+    // Use address column if available
+    if (job.address) {
+      return job.address;
     }
 
-    // Build address from available fields
-    const parts = [];
-    if (job.extra?.street_address) {
-      parts.push(job.extra.street_address);
-    }
-    if (job.extra?.city || job.postal_code) {
-      const cityLine = [
-        job.extra?.city,
-        job.extra?.state,
-        job.postal_code
-      ].filter(Boolean).join(', ');
-      if (cityLine) parts.push(cityLine);
-    }
-    if (parts.length === 0 && job.postal_code) {
-      parts.push(job.postal_code);
-    }
-    parts.push('USA');
-
-    return parts.filter(Boolean).join('\n') || 'Location not specified';
+    return 'Location not specified';
   };
 
   const address = formatAddress();
@@ -189,6 +201,17 @@ export function JobDetail() {
             {job.title}
           </h1>
 
+          {/* Company Name with Link */}
+          <a
+            href={job.company_url || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-primary font-medium text-base hover:underline"
+          >
+            {job.company}
+            <ChevronRight className="h-4 w-4" />
+          </a>
+
           {/* Posted Date */}
           {postedDate && (
             <p className="text-foreground text-sm">
@@ -196,37 +219,61 @@ export function JobDetail() {
             </p>
           )}
 
-          {/* Wage and Employment Type */}
-          {(wageRange || job.employment_type) && (
+          {/* Wage Range */}
+          {wageRange && (
             <div className="flex items-start gap-3">
               <Banknote className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
               <p className="text-foreground text-base">
                 {wageRange}
-                {wageRange && job.employment_type && ' • '}
-                {job.employment_type}
               </p>
             </div>
           )}
 
-          {/* Company Name */}
-          <div className="flex items-start gap-3">
-            <div className="w-5 h-5 flex-shrink-0 mt-0.5">
-              <div className="w-5 h-5 bg-muted rounded" />
+          {/* Employment Type and Schedule */}
+          {(job.employment_type || job.schedule_days || job.schedule_times) && (
+            <div className="flex items-start gap-3">
+              <Calendar className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
+              <div className="text-base">
+                <div className="text-foreground">
+                  {job.employment_type && <span>{job.employment_type}</span>}
+                  {job.employment_type && job.schedule_days && <span> • </span>}
+                  {job.schedule_days && <span>{job.schedule_days}</span>}
+                </div>
+                {job.schedule_times && (
+                  <div className="text-muted-foreground">
+                    {job.schedule_times}
+                  </div>
+                )}
+              </div>
             </div>
-            <p className="text-foreground text-base font-semibold">
-              {job.company}
-            </p>
-          </div>
+          )}
 
-          {/* Address */}
-          <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
-            <div className="text-foreground text-base">
-              {addressLines.map((line, idx) => (
-                <div key={idx}>{line}</div>
-              ))}
+          {/* Address with Google Maps Link */}
+          {job.address && (
+            <div className="flex items-start gap-3">
+              <MapPin className="h-5 w-5 text-foreground mt-0.5 flex-shrink-0" />
+              <div className="text-base">
+                {mapsUrl ? (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground hover:underline"
+                  >
+                    {addressLines.map((line, idx) => (
+                      <div key={idx}>{line}</div>
+                    ))}
+                  </a>
+                ) : (
+                  <div className="text-foreground">
+                    {addressLines.map((line, idx) => (
+                      <div key={idx}>{line}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Job Description Section */}
