@@ -14,6 +14,8 @@ interface Job {
   title: string;
   company: string;
   postal_code?: string;
+  city?: string;
+  state?: string;
   referencenumber?: string;
   employment_type?: string;
   created_at: string;
@@ -48,7 +50,7 @@ export function JobsList() {
       // Build query
       let query = supabase
         .from('jobs')
-        .select('id, slug, title, company, postal_code, referencenumber, employment_type, created_at, updated_at, is_active, posted_at', { count: 'exact' })
+        .select('id, slug, title, company, postal_code, city, state, referencenumber, employment_type, created_at, updated_at, is_active, posted_at', { count: 'exact' })
         .eq('is_active', true)
         .order('created_at', { ascending: false })
         .range((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE - 1);
@@ -237,11 +239,10 @@ export function JobsList() {
                           {job.employment_type && (
                             <Badge variant="outline">{job.employment_type}</Badge>
                           )}
-                          {job.postal_code && (
-                            <Badge variant="outline">{job.postal_code}</Badge>
-                          )}
-                          {job.referencenumber && (
-                            <Badge variant="outline">Ref: {job.referencenumber}</Badge>
+                          {(job.city || job.state) && (
+                            <Badge variant="outline">
+                              {[job.city, job.state].filter(Boolean).join(', ')}
+                            </Badge>
                           )}
                         </div>
                       </div>
