@@ -117,7 +117,8 @@ export function JobsList() {
   return (
     <>
       <TopBar />
-      <div className="container mx-auto max-w-7xl px-4 py-8">
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto max-w-7xl px-4 py-8">
         <div className="space-y-8">
           {/* Header */}
           <div className="space-y-2">
@@ -296,7 +297,8 @@ export function JobsList() {
           </>
         )}
       </div>
-    </div>
+        </div>
+      </div>
     </>
   );
 }
