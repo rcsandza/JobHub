@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { formatDistance } from 'date-fns';
 import { supabase } from '../lib/supabase';
+import { usePageTracking } from '../hooks/usePageTracking';
+import { trackButtonClick } from '../lib/tracking';
 import { JobDetailSkeleton } from './JobDetailSkeleton';
 import { TopBar } from './TopBar';
 import { Badge } from './ui/badge';
@@ -63,7 +65,22 @@ export function JobDetail() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
+  // Job context for tracking
+  const jobContext = job ? {
+    jobId: job.id,
+    jobSlug: slug,
+    jobReferenceNumber: job.referencenumber || undefined,
+    jobTitle: job.title,
+    jobCompany: job.company,
+  } : undefined;
+
+  // Track page view when job is loaded
+  usePageTracking('Job Detail Page', jobContext, !!job && !loading);
+
   const handleApplicationSubmit = (applicationPayload: any) => {
+    trackButtonClick('Submit Application', jobContext, {
+      hasResume: !!applicationPayload.data?.applicant?.resume,
+    });
     setPayload(applicationPayload);
     setIsModalOpen(true);
   };
