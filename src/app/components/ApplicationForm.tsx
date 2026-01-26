@@ -7,9 +7,11 @@ interface ApplicationFormProps {
   jobReferenceNumber: string | null;
   onSubmit: (payload: any) => void;
   hasAlreadyApplied?: boolean;
+  profileUrl?: string;
+  jobRequestUrl?: string;
 }
 
-export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplied = false }: ApplicationFormProps) {
+export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplied = false, profileUrl = '', jobRequestUrl = '' }: ApplicationFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -89,6 +91,20 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
     });
   };
 
+  const getDataUriScheme = (fileName: string): string => {
+    const ext = fileName.toLowerCase().split('.').pop();
+    switch (ext) {
+      case 'pdf':
+        return 'data:application/pdf;base64';
+      case 'docx':
+        return 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64';
+      case 'doc':
+        return 'data:application/msword;base64';
+      default:
+        return 'data:application/octet-stream;base64';
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -98,26 +114,24 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
       if (resumeFile) {
         const base64Data = await fileToBase64(resumeFile);
         resumeData = {
-          fileName: resumeFile.name,
-          data: base64Data,
+          dataUriScheme: getDataUriScheme(resumeFile.name),
+          file: base64Data,
         };
       }
 
       const payload = {
-        data: {
-          applicant: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            emailAddress: formData.emailAddress,
-            phone: formData.phone,
-            zipcode: formData.zipcode,
-            ...(resumeData && { resume: resumeData }),
-          },
-          job: {
-            originalJobReference: jobReferenceNumber || '',
-          },
-          tlrSid: `job_chom_${Date.now()}`,
+        hiring_applicant: {
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          phone: formData.phone,
+          zip: formData.zipcode,
+          email: formData.emailAddress,
+          ...(resumeData && { resume: resumeData }),
+          job_alerts_role: receiveJobAlerts,
+          job_alerts_location: receiveCompanyAlerts,
         },
+        profile_url: profileUrl,
+        job_request_url: jobRequestUrl,
       };
 
       onSubmit(payload);

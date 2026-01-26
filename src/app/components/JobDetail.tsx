@@ -50,6 +50,8 @@ interface Job {
   address: string | null;
   schedule_days: string | null;
   schedule_times: string | null;
+  profile_url: string | null;
+  job_request_url: string | null;
 }
 
 export function JobDetail() {
@@ -79,7 +81,7 @@ export function JobDetail() {
 
   const handleApplicationSubmit = (applicationPayload: any) => {
     trackButtonClick('Submit Application', jobContext, {
-      hasResume: !!applicationPayload.data?.applicant?.resume,
+      hasResume: !!applicationPayload.hiring_applicant?.resume,
     });
     setPayload(applicationPayload);
     setIsModalOpen(true);
@@ -105,7 +107,7 @@ export function JobDetail() {
       navigate('/success', {
         replace: true,
         state: {
-          applicantName: payload?.data?.applicant?.firstName || 'Applicant',
+          applicantName: payload?.hiring_applicant?.first_name || 'Applicant',
           jobTitle: job?.title || '',
           companyName: job?.company || '',
           jobUrl: job?.job_url || undefined,
@@ -643,6 +645,8 @@ export function JobDetail() {
             jobReferenceNumber={job.referencenumber}
             onSubmit={handleApplicationSubmit}
             hasAlreadyApplied={hasApplied}
+            profileUrl={job.profile_url || ''}
+            jobRequestUrl={job.job_request_url || ''}
           />
           </div>
 
@@ -691,7 +695,7 @@ export function JobDetail() {
       <SuccessModal
         isOpen={isSuccessModalOpen}
         onClose={handleSuccessModalClose}
-        applicantName={payload?.data?.applicant?.firstName || 'Applicant'}
+        applicantName={payload?.hiring_applicant?.first_name || 'Applicant'}
         jobTitle={job?.title || ''}
         companyName={job?.company || ''}
         jobUrl={job?.job_url || undefined}
