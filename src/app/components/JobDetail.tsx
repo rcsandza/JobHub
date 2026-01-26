@@ -161,12 +161,24 @@ export function JobDetail() {
     const minWage = job.compensation_min ?? job.target_wage_rate;
     const maxWage = job.compensation_max ?? job.target_wage_rate_max;
 
-    if (minWage && maxWage) {
-      return `$${minWage}–$${maxWage}/hr`;
-    } else if (minWage) {
-      return `$${minWage}+/hr`;
+    if (!minWage) {
+      return 'Competitive salary';
     }
-    return 'Competitive salary'; // Fallback
+
+    // Determine if yearly salary (>= $1000) or hourly rate
+    const isYearly = minWage >= 1000;
+    const suffix = isYearly ? 'per year' : 'per hour';
+
+    // Format number with commas for yearly salaries
+    const formatNumber = (num: number) => {
+      return isYearly ? num.toLocaleString('en-US') : num.toString();
+    };
+
+    if (minWage && maxWage) {
+      return `$${formatNumber(minWage)} - $${formatNumber(maxWage)} ${suffix}`;
+    } else {
+      return `$${formatNumber(minWage)}+ ${suffix}`;
+    }
   };
 
   const wageRange = formatWage();
@@ -269,13 +281,22 @@ export function JobDetail() {
               )}
             </div>
 
-            {/* Desktop: Title, Posted Date with Apply Button */}
+            {/* Desktop: Title, Company, Posted Date with Apply Button */}
             <div className="hidden lg:flex items-center justify-between gap-6">
-              {/* Left: Title and Posted Date */}
+              {/* Left: Title, Company, and Posted Date */}
               <div className="space-y-0.5 flex-1">
                 <h1 className="text-foreground font-bold leading-tight" style={{ fontSize: '22px' }}>
                   {job.title}
                 </h1>
+                <a
+                  href={job.company_url || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-primary font-bold text-base underline hover:opacity-80 transition-opacity"
+                >
+                  {job.company}
+                  <ChevronRight className="h-4 w-4" />
+                </a>
                 {postedDate && (
                   <p className="text-foreground text-sm">
                     Posted {postedDate}
