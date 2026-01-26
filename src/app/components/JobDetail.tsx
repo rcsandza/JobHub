@@ -212,12 +212,24 @@ export function JobDetail() {
     const minWage = job.compensation_min ?? job.target_wage_rate;
     const maxWage = job.compensation_max ?? job.target_wage_rate_max;
 
-    if (minWage && maxWage) {
-      return `$${minWage}–$${maxWage}/hr`;
-    } else if (minWage) {
-      return `$${minWage}+/hr`;
+    if (!minWage) {
+      return 'Competitive salary';
     }
-    return 'Competitive salary'; // Fallback
+
+    // Determine if yearly salary (>= $1000) or hourly rate
+    const isYearly = minWage >= 1000;
+    const suffix = isYearly ? 'per year' : 'per hour';
+
+    // Format number with commas for yearly salaries
+    const formatNumber = (num: number) => {
+      return isYearly ? num.toLocaleString('en-US') : num.toString();
+    };
+
+    if (minWage && maxWage) {
+      return `$${formatNumber(minWage)} - $${formatNumber(maxWage)} ${suffix}`;
+    } else {
+      return `$${formatNumber(minWage)}+ ${suffix}`;
+    }
   };
 
   const wageRange = formatWage();
