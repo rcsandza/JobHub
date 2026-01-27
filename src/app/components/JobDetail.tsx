@@ -654,7 +654,14 @@ export function JobDetail() {
           <div className="text-center mt-6">
           <p className="text-base font-normal">
             <span className="text-muted-foreground">Powered by </span>
-            <span className="text-primary font-medium">homebase</span>
+            <a
+              href="https://www.joinhomebase.com/?utm_source=syndicationpartner&utm_medium=partner&utm_campaign=jobpost"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary font-medium hover:underline"
+            >
+              Homebase
+            </a>
           </p>
           </div>
 
