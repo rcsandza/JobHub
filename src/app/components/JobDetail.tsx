@@ -48,10 +48,17 @@ interface Job {
   state: string | null;
   country: string | null;
   address: string | null;
-  schedule_days: string | null;
-  schedule_times: string | null;
   profile_url: string | null;
   job_request_url: string | null;
+  shift_times: {
+    monday?: string;
+    tuesday?: string;
+    wednesday?: string;
+    thursday?: string;
+    friday?: string;
+    saturday?: string;
+    sunday?: string;
+  } | null;
 }
 
 export function JobDetail() {
@@ -156,8 +163,7 @@ export function JobDetail() {
           compensation_min: data.compensation_min,
           compensation_max: data.compensation_max,
           employment_type: data.employment_type,
-          schedule_days: data.schedule_days,
-          schedule_times: data.schedule_times,
+          shift_times: data.shift_times,
         });
 
         // Check if user has already applied to this job
@@ -239,8 +245,104 @@ export function JobDetail() {
   // Format wage with employment type
   const wageWithType = `${wageRange} • ${job.employment_type || 'Full-time'}`;
 
-  // Get shift preference from extra data or use schedule fields
-  const shiftPreference = job.schedule_times || job.extra?.shift_preference || 'Flexible schedule';
+  // Helper: Format day ranges (Mon - Thu, Sat)
+  const formatDayRanges = (
+    activeDays: Array<keyof NonNullable<typeof job.shift_times>>,
+    dayOrder: Array<keyof NonNullable<typeof job.shift_times>>,
+    dayAbbrev: Record<string, string>
+  ): string => {
+    const indices = activeDays.map(d => dayOrder.indexOf(d));
+    const ranges: string[] = [];
+
+    let rangeStart = indices[0];
+    let rangeEnd = indices[0];
+
+    for (let i = 1; i <= indices.length; i++) {
+      if (i < indices.length && indices[i] === rangeEnd + 1) {
+        rangeEnd = indices[i];
+      } else {
+        // Output current range
+        if (rangeStart === rangeEnd) {
+          ranges.push(dayAbbrev[dayOrder[rangeStart]]);
+        } else {
+          ranges.push(`${dayAbbrev[dayOrder[rangeStart]]} - ${dayAbbrev[dayOrder[rangeEnd]]}`);
+        }
+        if (i < indices.length) {
+          rangeStart = indices[i];
+          rangeEnd = indices[i];
+        }
+      }
+    }
+
+    return ranges.join(', ');
+  };
+
+  // Format shift times from JSONB data
+  const formatShiftTimes = () => {
+    if (!job.shift_times) return { days: null, times: null };
+
+    const dayOrder: Array<keyof NonNullable<typeof job.shift_times>> =
+      ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayAbbrev: Record<string, string> = {
+      monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
+      thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun'
+    };
+
+    // Get days that have shifts (values are comma-separated strings)
+    const activeDays = dayOrder.filter(day => {
+      const shifts = job.shift_times?.[day];
+      return shifts && typeof shifts === 'string' && shifts.trim().length > 0;
+    });
+
+    if (activeDays.length === 0) return { days: null, times: null };
+
+    // Format days
+    let formattedDays: string;
+
+    if (activeDays.length === 7) {
+      formattedDays = 'Every day';
+    } else if (activeDays.length === 5 &&
+               activeDays.every(d => ['monday','tuesday','wednesday','thursday','friday'].includes(d))) {
+      formattedDays = 'Weekdays';
+    } else if (activeDays.length === 2 &&
+               activeDays.every(d => ['saturday','sunday'].includes(d))) {
+      formattedDays = 'Weekends';
+    } else {
+      // Find consecutive ranges and individual days
+      formattedDays = formatDayRanges(activeDays, dayOrder, dayAbbrev);
+    }
+
+    // Collect and format times (parse comma-separated strings)
+    const allTimes = new Set<string>();
+    activeDays.forEach(day => {
+      const shifts = job.shift_times?.[day];
+      if (shifts && typeof shifts === 'string') {
+        // Split by comma and trim each value
+        shifts.split(',').forEach(time => {
+          const trimmed = time.trim();
+          if (trimmed) allTimes.add(trimmed);
+        });
+      }
+    });
+
+    const timeOrder = ['Morning', 'Afternoon', 'Evening'];
+    const sortedTimes = timeOrder.filter(t => allTimes.has(t));
+
+    let formattedTimes: string;
+    if (sortedTimes.length === 1) {
+      formattedTimes = sortedTimes[0] + 's';
+    } else if (sortedTimes.length === 2) {
+      formattedTimes = sortedTimes[0] + 's and ' + sortedTimes[1].toLowerCase() + 's';
+    } else {
+      formattedTimes = sortedTimes.slice(0, -1).map(t => t + 's').join(', ').toLowerCase();
+      formattedTimes = formattedTimes.charAt(0).toUpperCase() + formattedTimes.slice(1);
+      formattedTimes += ', and ' + sortedTimes[sortedTimes.length - 1].toLowerCase() + 's';
+    }
+
+    return { days: formattedDays, times: formattedTimes };
+  };
+
+  const { days: shiftDays, times: shiftTimes } = formatShiftTimes();
 
   // Format Google Maps URL from address
   const getGoogleMapsUrl = () => {
@@ -365,11 +467,11 @@ export function JobDetail() {
                   <CalendarClock className="h-6 w-6 text-foreground flex-shrink-0" />
                   <div className="flex flex-col gap-0.5">
                     <p className="text-foreground font-medium" style={{ fontSize: '16px', lineHeight: '1.5em' }}>
-                      {job.employment_type || 'Full-time'}{job.schedule_days && ` • ${job.schedule_days}`}
+                      {job.employment_type || 'Full-time'}{shiftDays && ` • ${shiftDays}`}
                     </p>
-                    {job.schedule_times && (
+                    {shiftTimes && (
                       <p className="font-medium" style={{ fontSize: '16px', lineHeight: '1.5em', color: '#605F56' }}>
-                        {job.schedule_times}
+                        {shiftTimes}
                       </p>
                     )}
                   </div>
@@ -541,11 +643,11 @@ export function JobDetail() {
                   <CalendarClock className="h-6 w-6 text-foreground flex-shrink-0" />
                   <div className="flex flex-col gap-0.5">
                     <p className="text-foreground text-base font-medium">
-                      {job.employment_type || 'Full-time'}{job.schedule_days && ` • ${job.schedule_days}`}
+                      {job.employment_type || 'Full-time'}{shiftDays && ` • ${shiftDays}`}
                     </p>
-                    {job.schedule_times && (
+                    {shiftTimes && (
                       <p className="text-base font-medium" style={{ color: '#605F56' }}>
-                        {job.schedule_times}
+                        {shiftTimes}
                       </p>
                     )}
                   </div>
