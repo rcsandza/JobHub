@@ -14,6 +14,7 @@ import { ApplicationForm } from './ApplicationForm';
 import { PayloadModal } from './PayloadModal';
 import { SuccessModal } from './SuccessModal';
 import { Banknote, MapPin, Building2, CalendarClock, ChevronRight } from 'lucide-react';
+import { formatWage, formatShiftTimes, formatAddress, isNewPosting, type WageInput, type ShiftTimes, type AddressInput } from '@/utils';
 
 interface Job {
   id: string;
@@ -250,140 +251,16 @@ export function JobDetail() {
     : null;
 
   // Check if new (within last 7 days)
-  const isNew =
-    job.posted_at &&
-    new Date().getTime() - new Date(job.posted_at).getTime() <
-      7 * 24 * 60 * 60 * 1000;
+  const isNew = isNewPosting(job.posted_at);
 
   // Format wage range
-  const formatWage = () => {
-    // Use compensation_min/max first, fallback to target_wage_rate for backwards compatibility
-    const minWage = job.compensation_min ?? job.target_wage_rate;
-    const maxWage = job.compensation_max ?? job.target_wage_rate_max;
-
-    if (!minWage) {
-      return 'Competitive salary';
-    }
-
-    // Determine if yearly salary (>= $1000) or hourly rate
-    const isYearly = minWage >= 1000;
-    const suffix = isYearly ? 'per year' : 'per hour';
-
-    // Format number with commas for yearly salaries
-    const formatNumber = (num: number) => {
-      return isYearly ? num.toLocaleString('en-US') : num.toString();
-    };
-
-    if (minWage && maxWage) {
-      return `$${formatNumber(minWage)} - $${formatNumber(maxWage)} ${suffix}`;
-    } else {
-      return `$${formatNumber(minWage)}+ ${suffix}`;
-    }
-  };
-
-  const wageRange = formatWage();
-
-  // Format wage with employment type
-  const wageWithType = `${wageRange} • ${job.employment_type || 'Full-time'}`;
-
-  // Helper: Format day ranges (Mon - Thu, Sat)
-  const formatDayRanges = (
-    activeDays: Array<keyof NonNullable<typeof job.shift_times>>,
-    dayOrder: Array<keyof NonNullable<typeof job.shift_times>>,
-    dayAbbrev: Record<string, string>
-  ): string => {
-    const indices = activeDays.map(d => dayOrder.indexOf(d));
-    const ranges: string[] = [];
-
-    let rangeStart = indices[0];
-    let rangeEnd = indices[0];
-
-    for (let i = 1; i <= indices.length; i++) {
-      if (i < indices.length && indices[i] === rangeEnd + 1) {
-        rangeEnd = indices[i];
-      } else {
-        // Output current range
-        if (rangeStart === rangeEnd) {
-          ranges.push(dayAbbrev[dayOrder[rangeStart]]);
-        } else {
-          ranges.push(`${dayAbbrev[dayOrder[rangeStart]]} - ${dayAbbrev[dayOrder[rangeEnd]]}`);
-        }
-        if (i < indices.length) {
-          rangeStart = indices[i];
-          rangeEnd = indices[i];
-        }
-      }
-    }
-
-    return ranges.join(', ');
-  };
+  const wageRange = formatWage({
+    minWage: job.compensation_min ?? job.target_wage_rate,
+    maxWage: job.compensation_max ?? job.target_wage_rate_max,
+  });
 
   // Format shift times from JSONB data
-  const formatShiftTimes = () => {
-    if (!job.shift_times) return { days: null, times: null };
-
-    const dayOrder: Array<keyof NonNullable<typeof job.shift_times>> =
-      ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const dayAbbrev: Record<string, string> = {
-      monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed',
-      thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun'
-    };
-
-    // Get days that have shifts (values are comma-separated strings)
-    const activeDays = dayOrder.filter(day => {
-      const shifts = job.shift_times?.[day];
-      return shifts && typeof shifts === 'string' && shifts.trim().length > 0;
-    });
-
-    if (activeDays.length === 0) return { days: null, times: null };
-
-    // Format days
-    let formattedDays: string;
-
-    if (activeDays.length === 7) {
-      formattedDays = 'Every day';
-    } else if (activeDays.length === 5 &&
-               activeDays.every(d => ['monday','tuesday','wednesday','thursday','friday'].includes(d))) {
-      formattedDays = 'Weekdays';
-    } else if (activeDays.length === 2 &&
-               activeDays.every(d => ['saturday','sunday'].includes(d))) {
-      formattedDays = 'Weekends';
-    } else {
-      // Find consecutive ranges and individual days
-      formattedDays = formatDayRanges(activeDays, dayOrder, dayAbbrev);
-    }
-
-    // Collect and format times (parse comma-separated strings)
-    const allTimes = new Set<string>();
-    activeDays.forEach(day => {
-      const shifts = job.shift_times?.[day];
-      if (shifts && typeof shifts === 'string') {
-        // Split by comma and trim each value
-        shifts.split(',').forEach(time => {
-          const trimmed = time.trim();
-          if (trimmed) allTimes.add(trimmed);
-        });
-      }
-    });
-
-    const timeOrder = ['Morning', 'Afternoon', 'Evening'];
-    const sortedTimes = timeOrder.filter(t => allTimes.has(t));
-
-    let formattedTimes: string;
-    if (sortedTimes.length === 1) {
-      formattedTimes = sortedTimes[0] + 's';
-    } else if (sortedTimes.length === 2) {
-      formattedTimes = sortedTimes[0] + 's and ' + sortedTimes[1].toLowerCase() + 's';
-    } else {
-      formattedTimes = sortedTimes.slice(0, -1).map(t => t + 's').join(', ').toLowerCase();
-      formattedTimes = formattedTimes.charAt(0).toUpperCase() + formattedTimes.slice(1);
-      formattedTimes += ', and ' + sortedTimes[sortedTimes.length - 1].toLowerCase() + 's';
-    }
-
-    return { days: formattedDays, times: formattedTimes };
-  };
-
-  const { days: shiftDays, times: shiftTimes } = formatShiftTimes();
+  const { days: shiftDays, times: shiftTimes } = formatShiftTimes(job.shift_times);
 
   // Format Google Maps URL from address
   const getGoogleMapsUrl = () => {
@@ -395,36 +272,11 @@ export function JobDetail() {
   const mapsUrl = getGoogleMapsUrl();
 
   // Format full address
-  const formatAddress = () => {
-    // Use address column if available
-    if (job.address) {
-      return job.address;
-    }
-
-    // Build address from available fields
-    const parts = [];
-    if (job.extra?.street_address) {
-      parts.push(job.extra.street_address);
-    }
-
-    // City, State ZIP on one line
-    const cityStateLine = [
-      job.extra?.city,
-      job.extra?.state,
-      job.postal_code
-    ].filter(Boolean).join(', ');
-
-    if (cityStateLine) {
-      parts.push(cityStateLine);
-    } else if (job.postal_code) {
-      // If we only have ZIP, show it
-      parts.push(job.postal_code);
-    }
-
-    return parts.filter(Boolean).join('\n') || 'Location not specified';
-  };
-
-  const address = formatAddress();
+  const address = formatAddress({
+    address: job.address,
+    extra: job.extra,
+    postal_code: job.postal_code,
+  });
   const addressLines = address.split('\n');
 
   // Sanitize HTML description

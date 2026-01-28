@@ -4,19 +4,10 @@
  * - session_id: resets when browser closes (sessionStorage)
  */
 
+import { generateUUID } from '@/utils';
+
 const VISITOR_ID_KEY = 'jobhub_visitor_id';
 const SESSION_ID_KEY = 'jobhub_session_id';
-
-/**
- * Generate a simple UUID v4
- */
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
 /**
  * Get or create visitor ID (persistent across browser sessions)

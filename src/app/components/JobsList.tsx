@@ -7,6 +7,7 @@ import { Badge } from './ui/badge';
 import { TopBar } from './TopBar';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDistance } from 'date-fns';
+import { isNewPosting } from '@/utils';
 
 interface Job {
   id: string;
@@ -94,13 +95,6 @@ export function JobsList() {
     setTitleSearch('');
     setZipcodeSearch('');
     setCurrentPage(1);
-  };
-
-  const isNew = (createdAt: string) => {
-    const daysSinceCreation = Math.floor(
-      (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
-    );
-    return daysSinceCreation <= 7;
   };
 
   if (error) {
@@ -225,7 +219,7 @@ export function JobsList() {
                           <p className="text-muted-foreground" style={{ fontSize: 'var(--text-sm)' }}>
                             {job.company}
                           </p>
-                          {isNew(job.created_at) && (
+                          {isNewPosting(job.created_at) && (
                             <Badge variant="default" className="bg-primary">
                               New
                             </Badge>
