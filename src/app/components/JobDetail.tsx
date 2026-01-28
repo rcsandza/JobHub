@@ -792,6 +792,9 @@ export function JobDetail() {
             jobRequestUrl={job.job_request_url || ''}
             isSubmitting={isSubmitting}
             submitError={submitError}
+            jobTitle={job.title}
+            city={job.city || undefined}
+            company={job.company}
           />
           </div>
 
