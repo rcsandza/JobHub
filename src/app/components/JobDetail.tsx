@@ -97,7 +97,7 @@ export function JobDetail() {
     setSubmitError(null);
 
     try {
-      const response = await fetch('https://app.joinhomebase.com/hiring/applicants', {
+      const response = await fetch('/api/apply', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
