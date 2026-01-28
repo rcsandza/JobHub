@@ -2,6 +2,7 @@ import { useState, FormEvent, ChangeEvent } from 'react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { X } from 'lucide-react';
+import { formatPhoneNumber, formatZipcode, fileToBase64, getDataUriScheme } from '@/utils';
 
 interface ApplicationFormProps {
   jobReferenceNumber: string | null;
@@ -30,33 +31,16 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'phone') {
-      // Remove all non-digit characters
-      const digits = value.replace(/\D/g, '');
-      
-      // Limit to 10 digits
-      const limitedDigits = digits.slice(0, 10);
-      
-      // Format as xxx-xxx-xxxx
-      let formattedPhone = limitedDigits;
-      if (limitedDigits.length > 6) {
-        formattedPhone = `${limitedDigits.slice(0, 3)}-${limitedDigits.slice(3, 6)}-${limitedDigits.slice(6)}`;
-      } else if (limitedDigits.length > 3) {
-        formattedPhone = `${limitedDigits.slice(0, 3)}-${limitedDigits.slice(3)}`;
-      }
-      
       setFormData((prev) => ({
         ...prev,
-        phone: formattedPhone,
+        phone: formatPhoneNumber(value),
       }));
     } else if (name === 'zipcode') {
-      // Remove all non-digit characters and limit to 5 digits
-      const digits = value.replace(/\D/g, '').slice(0, 5);
-      
       setFormData((prev) => ({
         ...prev,
-        zipcode: digits,
+        zipcode: formatZipcode(value),
       }));
     } else {
       setFormData((prev) => ({
@@ -78,34 +62,6 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
     const fileInput = document.getElementById('resume') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
-    }
-  };
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  const getDataUriScheme = (fileName: string): string => {
-    const ext = fileName.toLowerCase().split('.').pop();
-    switch (ext) {
-      case 'pdf':
-        return 'data:application/pdf;base64';
-      case 'docx':
-        return 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64';
-      case 'doc':
-        return 'data:application/msword;base64';
-      default:
-        return 'data:application/octet-stream;base64';
     }
   };
 
