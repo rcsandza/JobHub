@@ -11,9 +11,12 @@ interface ApplicationFormProps {
   jobRequestUrl?: string;
   isSubmitting?: boolean;
   submitError?: string | null;
+  jobTitle?: string;
+  city?: string;
+  company?: string;
 }
 
-export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplied = false, profileUrl = '', jobRequestUrl = '', isSubmitting = false, submitError = null }: ApplicationFormProps) {
+export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplied = false, profileUrl = '', jobRequestUrl = '', isSubmitting = false, submitError = null, jobTitle = '', city = '', company = '' }: ApplicationFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -297,7 +300,7 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
               }}
             />
             <label htmlFor="jobAlerts" className="cursor-pointer flex-1" style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: '16px', fontWeight: 500, lineHeight: '24px', color: '#1E0B3A' }}>
-              Receive alerts for more Assistant Kitchen Manager jobs in Los Angeles
+              Receive alerts for more {jobTitle || 'similar'} jobs{city ? ` in ${city}` : ''}
             </label>
           </div>
 
@@ -314,7 +317,7 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
               }}
             />
             <label htmlFor="companyAlerts" className="cursor-pointer flex-1" style={{ fontFamily: '"Plus Jakarta Sans"', fontSize: '16px', fontWeight: 500, lineHeight: '24px', color: '#1E0B3A' }}>
-              Receive alerts for more jobs from Limonata by Paninos
+              Receive alerts for more jobs from {company || 'this company'}
             </label>
           </div>
         </div>
