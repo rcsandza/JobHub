@@ -73,6 +73,8 @@ export function JobDetail() {
   const [payload, setPayload] = useState<any>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Job context for tracking
   const jobContext = job ? {
@@ -86,12 +88,51 @@ export function JobDetail() {
   // Track page view when job is loaded
   usePageTracking('Job Detail Page', jobContext, !!job && !loading);
 
-  const handleApplicationSubmit = (applicationPayload: any) => {
+  const handleApplicationSubmit = async (applicationPayload: any) => {
     trackButtonClick('Submit Application', jobContext, {
       hasResume: !!applicationPayload.hiring_applicant?.resume,
     });
-    setPayload(applicationPayload);
-    setIsModalOpen(true);
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch('https://app.joinhomebase.com/hiring/applicants', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(applicationPayload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Success - proceed to success screen
+        setPayload(applicationPayload);
+        setIsModalOpen(true);
+      } else if (response.status === 422) {
+        // Validation error from API
+        const errorMessage = Array.isArray(data.errors)
+          ? data.errors.join('. ')
+          : 'Please check your information and try again.';
+        setSubmitError(errorMessage);
+      } else {
+        setSubmitError('Unable to submit application. Please try again.');
+      }
+    } catch (error) {
+      console.error('Application submission error:', error);
+
+      // Check if it's a CORS or network error
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        setSubmitError('Unable to reach the server. This may be a CORS issue during development.');
+      } else {
+        setSubmitError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePayloadClose = () => {
@@ -749,6 +790,8 @@ export function JobDetail() {
             hasAlreadyApplied={hasApplied}
             profileUrl={job.profile_url || ''}
             jobRequestUrl={job.job_request_url || ''}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
           />
           </div>
 
