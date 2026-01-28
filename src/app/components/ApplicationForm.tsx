@@ -9,9 +9,11 @@ interface ApplicationFormProps {
   hasAlreadyApplied?: boolean;
   profileUrl?: string;
   jobRequestUrl?: string;
+  isSubmitting?: boolean;
+  submitError?: string | null;
 }
 
-export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplied = false, profileUrl = '', jobRequestUrl = '' }: ApplicationFormProps) {
+export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplied = false, profileUrl = '', jobRequestUrl = '', isSubmitting = false, submitError = null }: ApplicationFormProps) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,7 +22,6 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
     zipcode: '',
   });
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [receiveJobAlerts, setReceiveJobAlerts] = useState(true);
   const [receiveCompanyAlerts, setReceiveCompanyAlerts] = useState(true);
 
@@ -107,7 +108,6 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
     try {
       let resumeData = null;
@@ -137,8 +137,6 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
       onSubmit(payload);
     } catch (error) {
       console.error('Error processing form:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -322,44 +320,52 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
         </div>
 
         {/* Submit Button - Right aligned on desktop */}
-        <div className="lg:flex lg:justify-end">
-          {hasAlreadyApplied ? (
-            <Button
-              disabled
-              className="w-full lg:w-auto cursor-not-allowed h-12 lg:h-10 px-6 lg:px-6 rounded-lg flex items-center justify-center"
-              style={{
-                backgroundColor: '#F2F2EC',
-                color: '#605F56',
-                textAlign: 'center',
-                fontFamily: '"Plus Jakarta Sans"',
-                fontSize: '16px',
-                fontStyle: 'normal',
-                fontWeight: 700,
-                lineHeight: '24px',
-                gap: '8px',
-              }}
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15.6652 2.35216C16.1116 2.82096 16.1116 3.57855 15.6652 4.04735L6.52179 13.6484C6.07534 14.1172 5.35387 14.1172 4.90742 13.6484L0.334733 8.84787C-0.111578 8.37907 -0.111578 7.62149 0.334733 7.15269C0.781115 6.68389 1.50473 6.68389 1.95118 7.15269L5.68246 11.1019L14.0508 2.35216C14.4972 1.88261 15.2187 1.88261 15.6652 2.35216Z" fill="#605F56"/>
-              </svg>
-              Applied
-            </Button>
-          ) : (
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full lg:w-auto bg-primary hover:bg-primary/90 h-12 lg:h-10 lg:px-8 rounded-lg"
-              style={{
-                color: '#FFF',
-                textAlign: 'center',
-                fontFamily: '"Plus Jakarta Sans"',
-                fontSize: '16px',
-                fontWeight: 700,
-                lineHeight: '24px'
-              }}
-            >
-              {isSubmitting ? 'Processing...' : 'Submit application'}
-            </Button>
+        <div className="space-y-3">
+          {/* Button row - right aligned on desktop */}
+          <div className="lg:flex lg:justify-end">
+            {hasAlreadyApplied ? (
+              <Button
+                disabled
+                className="w-full lg:w-auto cursor-not-allowed h-12 lg:h-10 px-6 lg:px-6 rounded-lg flex items-center justify-center"
+                style={{
+                  backgroundColor: '#F2F2EC',
+                  color: '#605F56',
+                  textAlign: 'center',
+                  fontFamily: '"Plus Jakarta Sans"',
+                  fontSize: '16px',
+                  fontStyle: 'normal',
+                  fontWeight: 700,
+                  lineHeight: '24px',
+                  gap: '8px',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.6652 2.35216C16.1116 2.82096 16.1116 3.57855 15.6652 4.04735L6.52179 13.6484C6.07534 14.1172 5.35387 14.1172 4.90742 13.6484L0.334733 8.84787C-0.111578 8.37907 -0.111578 7.62149 0.334733 7.15269C0.781115 6.68389 1.50473 6.68389 1.95118 7.15269L5.68246 11.1019L14.0508 2.35216C14.4972 1.88261 15.2187 1.88261 15.6652 2.35216Z" fill="#605F56"/>
+                </svg>
+                Applied
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full lg:w-auto bg-primary hover:bg-primary/90 h-12 lg:h-10 lg:px-8 rounded-lg"
+                style={{
+                  color: '#FFF',
+                  textAlign: 'center',
+                  fontFamily: '"Plus Jakarta Sans"',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  lineHeight: '24px'
+                }}
+              >
+                {isSubmitting ? 'Processing...' : 'Submit application'}
+              </Button>
+            )}
+          </div>
+
+          {/* Error row - centered */}
+          {submitError && (
+            <p className="text-destructive text-sm text-center">{submitError}</p>
           )}
         </div>
       </form>
