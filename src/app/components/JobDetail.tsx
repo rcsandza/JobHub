@@ -113,7 +113,22 @@ export function JobDetail() {
       if (response.ok) {
         // Success - proceed to success screen
         setPayload(applicationPayload);
-        setIsModalOpen(true);
+
+        // Go directly to success (skip PayloadModal)
+        const isDesktop = window.innerWidth >= 1024;
+        if (isDesktop) {
+          setIsSuccessModalOpen(true);
+        } else {
+          navigate('/success', {
+            state: {
+              applicantName: applicationPayload.hiring_applicant?.first_name || 'Applicant',
+              jobTitle: job?.title || '',
+              companyName: job?.company || '',
+              jobUrl: job?.job_url || undefined,
+              companyUrl: job?.company_url || undefined,
+            }
+          });
+        }
       } else if (response.status === 422) {
         // Validation error from API
         const errorMessage = Array.isArray(data.errors)
