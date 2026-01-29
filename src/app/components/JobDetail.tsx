@@ -76,6 +76,7 @@ export function JobDetail() {
   const [hasApplied, setHasApplied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isFormVisible, setIsFormVisible] = useState(false);
 
   // Job context for tracking
   const jobContext = job ? {
@@ -224,6 +225,20 @@ export function JobDetail() {
     fetchJob();
   }, [slug]);
 
+  // Observe form header visibility for sticky buttons
+  useEffect(() => {
+    const formElement = document.getElementById('application-form');
+    if (!formElement) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFormVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+
+    observer.observe(formElement);
+    return () => observer.disconnect();
+  }, [job]);
+
   if (loading) {
     return <JobDetailSkeleton />;
   }
@@ -258,6 +273,9 @@ export function JobDetail() {
     minWage: job.compensation_min ?? job.target_wage_rate,
     maxWage: job.compensation_max ?? job.target_wage_rate_max,
   });
+
+  // Check if wage data exists
+  const hasWageData = !!(job.compensation_min || job.target_wage_rate);
 
   // Format shift times from JSONB data
   const { days: shiftDays, times: shiftTimes } = formatShiftTimes(job.shift_times);
@@ -301,7 +319,15 @@ export function JobDetail() {
 
   return (
     <>
-      <TopBar jobTitle={job?.title} />
+      <TopBar
+        jobTitle={job?.title}
+        companyName={job?.company}
+        companyUrl={job?.company_url || undefined}
+        onApplyClick={scrollToApplication}
+        hideApply={isFormVisible}
+        hasApplied={hasApplied}
+        isSubmitting={isSubmitting}
+      />
 
       {/* Grey background for all cards */}
       <div className="min-h-screen bg-background">
@@ -348,12 +374,14 @@ export function JobDetail() {
               {/* Details Section */}
               <div className="flex flex-col gap-5">
                 {/* Wage */}
-                <div className="flex items-center gap-4">
-                  <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
-                  <p className="text-foreground font-medium" style={{ fontSize: '16px', lineHeight: '1.5em' }}>
-                    {wageRange}
-                  </p>
-                </div>
+                {hasWageData && (
+                  <div className="flex items-center gap-4">
+                    <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
+                    <p className="text-foreground font-medium" style={{ fontSize: '16px', lineHeight: '1.5em' }}>
+                      {wageRange}
+                    </p>
+                  </div>
+                )}
 
                 {/* Shift Time */}
                 <div className="flex items-center gap-4">
@@ -524,12 +552,14 @@ export function JobDetail() {
               {/* Details Section */}
               <div className="space-y-5">
                 {/* Wage */}
-                <div className="flex items-center gap-4">
-                  <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
-                  <p className="text-foreground text-base font-medium">
-                    {wageRange}
-                  </p>
-                </div>
+                {hasWageData && (
+                  <div className="flex items-center gap-4">
+                    <Banknote className="h-6 w-6 text-foreground flex-shrink-0" />
+                    <p className="text-foreground text-base font-medium">
+                      {wageRange}
+                    </p>
+                  </div>
+                )}
 
                 {/* Shift Time */}
                 <div className="flex items-center gap-4">
@@ -664,30 +694,6 @@ export function JobDetail() {
             </a>
           </p>
           </div>
-
-          {/* Footer Metadata */}
-          <div className="mt-8 pt-6 border-t border-border space-y-1 text-xs text-muted-foreground">
-          {job.referencenumber && (
-            <p>
-              Reference:{' '}
-              {job.job_url ? (
-                <a
-                  href={job.job_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary underline hover:opacity-80 transition-opacity"
-                >
-                  {job.referencenumber}
-                </a>
-              ) : (
-                job.referencenumber
-              )}
-            </p>
-          )}
-          {job.is_active === false && (
-            <p className="text-destructive">This job may no longer be active</p>
-          )}
-          </div>
         </div>
       </div>
 
@@ -708,6 +714,7 @@ export function JobDetail() {
         jobUrl={job?.job_url || undefined}
         companyUrl={job?.company_url || undefined}
       />
+
     </>
   );
 }

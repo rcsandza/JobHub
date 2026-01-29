@@ -305,6 +305,7 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
               </Button>
             ) : (
               <Button
+                id="submit-application-btn"
                 type="submit"
                 disabled={isSubmitting}
                 className="w-full lg:w-auto bg-primary hover:bg-primary/90 h-12 lg:h-10 lg:px-8 rounded-lg"
