@@ -34,3 +34,6 @@ dist-ssr
 # Build output
 build
 .vercel
+
+# Playwright
+e2e/.auth/
