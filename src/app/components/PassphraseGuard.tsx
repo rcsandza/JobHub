@@ -10,6 +10,11 @@ interface PassphraseGuardProps {
 }
 
 export function PassphraseGuard({ children }: PassphraseGuardProps) {
+  // Bypass passphrase in test environment
+  if (import.meta.env.VITE_BYPASS_PASSPHRASE === 'true') {
+    return <>{children}</>;
+  }
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passphrase, setPassphrase] = useState('');
   const [error, setError] = useState('');
