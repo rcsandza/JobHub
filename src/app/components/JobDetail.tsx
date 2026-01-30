@@ -99,6 +99,48 @@ export function JobDetail() {
     setSubmitError(null);
 
     try {
+      // Mock API response in development
+      if (import.meta.env.VITE_MOCK_API === 'true') {
+        console.log('[MOCK API] Application payload that would be submitted:');
+        console.log(JSON.stringify(applicationPayload, null, 2));
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+
+        // Proceed with success flow (same as response.ok block)
+        setPayload(applicationPayload);
+
+        // Track successful outcome
+        const { hiring_applicant, ...restPayload } = applicationPayload;
+        const { resume, ...applicantWithoutResume } = hiring_applicant || {};
+        const payloadWithoutResume = {
+          ...restPayload,
+          hiring_applicant: applicantWithoutResume,
+        };
+        await trackButtonClick('Application Outcome', jobContext, {
+          success: true,
+          payload: payloadWithoutResume,
+        });
+
+        // Go directly to success (skip PayloadModal)
+        const isDesktop = window.innerWidth >= 1024;
+        if (isDesktop) {
+          setIsSuccessModalOpen(true);
+        } else {
+          navigate('/success', {
+            state: {
+              applicantName: applicationPayload.hiring_applicant?.first_name || 'Applicant',
+              jobTitle: job?.title || '',
+              companyName: job?.company || '',
+              jobUrl: job?.job_url || undefined,
+              companyUrl: job?.company_url || undefined,
+            }
+          });
+        }
+
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Real API call (production)
       const response = await fetch('/api/apply', {
         method: 'POST',
         headers: {
@@ -113,6 +155,18 @@ export function JobDetail() {
       if (response.ok) {
         // Success - proceed to success screen
         setPayload(applicationPayload);
+
+        // Track successful outcome
+        const { hiring_applicant, ...restPayload } = applicationPayload;
+        const { resume, ...applicantWithoutResume } = hiring_applicant || {};
+        const payloadWithoutResume = {
+          ...restPayload,
+          hiring_applicant: applicantWithoutResume,
+        };
+        await trackButtonClick('Application Outcome', jobContext, {
+          success: true,
+          payload: payloadWithoutResume,
+        });
 
         // Go directly to success (skip PayloadModal)
         const isDesktop = window.innerWidth >= 1024;
@@ -135,18 +189,39 @@ export function JobDetail() {
           ? data.errors.join('. ')
           : 'Please check your information and try again.';
         setSubmitError(errorMessage);
+
+        // Track validation error outcome
+        trackButtonClick('Application Outcome', jobContext, {
+          success: false,
+          error: errorMessage,
+        });
       } else {
-        setSubmitError('Unable to submit application. Please try again.');
+        const errorMessage = 'Unable to submit application. Please try again.';
+        setSubmitError(errorMessage);
+
+        // Track general error outcome
+        trackButtonClick('Application Outcome', jobContext, {
+          success: false,
+          error: errorMessage,
+        });
       }
     } catch (error) {
       console.error('Application submission error:', error);
 
       // Check if it's a CORS or network error
+      let errorMessage: string;
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        setSubmitError('Unable to reach the server. This may be a CORS issue during development.');
+        errorMessage = 'Unable to reach the server. This may be a CORS issue during development.';
       } else {
-        setSubmitError('An unexpected error occurred. Please try again.');
+        errorMessage = 'An unexpected error occurred. Please try again.';
       }
+      setSubmitError(errorMessage);
+
+      // Track network/unexpected error outcome
+      trackButtonClick('Application Outcome', jobContext, {
+        success: false,
+        error: errorMessage,
+      });
     } finally {
       setIsSubmitting(false);
     }
