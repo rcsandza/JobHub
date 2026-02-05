@@ -278,6 +278,7 @@ export function JobDetail() {
           .from('jobs')
           .select('*')
           .eq('slug', slug)
+          .eq('is_active', true)
           .single();
 
         if (fetchError) {
