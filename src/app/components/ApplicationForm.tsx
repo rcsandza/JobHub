@@ -85,6 +85,7 @@ export function ApplicationForm({ jobReferenceNumber, onSubmit, hasAlreadyApplie
           phone: formData.phone,
           zip: formData.zipcode,
           email: formData.emailAddress,
+          original_source: 'homebase_vercel_apply',
           ...(resumeData && { resume: resumeData }),
           job_alerts_role: receiveJobAlerts,
           job_alerts_location: receiveCompanyAlerts,
